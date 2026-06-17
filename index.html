@@ -350,7 +350,7 @@
     </div>
 
     <script>
-        const APP_VERSION = 'v1.8.1';
+        const APP_VERSION = 'v1.9.0';
         const PROXY_BASE = '__PROXY_BASE__';
 
         // ===== UA 检测 =====
@@ -389,8 +389,14 @@
             return `<span>¥${f.toFixed(0)}</span>`;
         }
 
+        function bayesianRating(review, C = 100, prior = 0.8) {
+            if (!review || review.total <= 0) return 0;
+            return (review.positive + C * prior) / (review.total + C);
+        }
+
         function calcRating(review) {
-            return review && review.total > 0 ? (review.positive / review.total * 10).toFixed(1) : null;
+            const r = bayesianRating(review);
+            return r > 0 ? (r * 10).toFixed(1) : null;
         }
 
         function getGameTags(game, includeSaleTag) {
@@ -574,9 +580,7 @@
             switch (sortBy) {
                 case 'rating':
                     sorted.sort((a, b) => {
-                        const ra = a.review && a.review.total > 0 ? a.review.positive / a.review.total : 0;
-                        const rb = b.review && b.review.total > 0 ? b.review.positive / b.review.total : 0;
-                        return rb - ra;
+                        return bayesianRating(b.review) - bayesianRating(a.review);
                     });
                     break;
                 case 'price':
@@ -781,9 +785,7 @@
             switch (sortBy) {
                 case 'rating':
                     sorted.sort((a, b) => {
-                        const ra = a.review && a.review.total > 0 ? a.review.positive / a.review.total : 0;
-                        const rb = b.review && b.review.total > 0 ? b.review.positive / b.review.total : 0;
-                        return rb - ra;
+                        return bayesianRating(b.review) - bayesianRating(a.review);
                     });
                     break;
                 case 'name':
