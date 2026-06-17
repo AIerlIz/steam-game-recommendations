@@ -575,7 +575,7 @@ def ai_analyze_and_recommend(
 
 
 def steam_search_by_name(name: str) -> dict | None:
-    """通过 Steam storesearch API 按名称搜索，返回 {appid, name} 或 None"""
+    """通过 Steam storesearch API 按名称搜索，返回 {appid, name, type} 或 None"""
     url = f'https://store.steampowered.com/api/storesearch?term={requests.utils.quote(name)}&l=schinese&cc=cn'
     try:
         resp = requests.get(url, timeout=10)
@@ -583,7 +583,11 @@ def steam_search_by_name(name: str) -> dict | None:
             items = resp.json().get('items', [])
             if items:
                 item = items[0]
-                return {'appid': item['id'], 'name': item.get('name', '')}
+                return {
+                    'appid': item['id'],
+                    'name': item.get('name', ''),
+                    'type': item.get('type', ''),
+                }
     except Exception:
         pass
     return None
@@ -713,6 +717,11 @@ def main() -> None:
         corrected = steam_search_by_name(name_to_search)
         if not corrected:
             print(f"   ✗ {name_to_search}: 名称搜索无结果，跳过")
+            failed_count += 1
+            continue
+
+        if corrected.get('type') != 'app':
+            print(f"   ✗ {name_to_search}: 非游戏类型 ({corrected.get('type')})，跳过")
             failed_count += 1
             continue
 
