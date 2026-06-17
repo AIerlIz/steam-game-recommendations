@@ -44,13 +44,10 @@ class OpenAILLM(BaseLLM):
         self.api_base = api_base.rstrip("/")
         self.model = model
 
-    def generate(self, prompt: str, temperature: float = 0.7, system_prompt: str | None = None) -> str:
+    def generate(self, prompt: str, temperature: float = 0.7) -> str:
         url = f"{self.api_base}/chat/completions"
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+        messages = [{"role": "user", "content": prompt}]
         payload = {
             "model": self.model,
             "messages": messages,

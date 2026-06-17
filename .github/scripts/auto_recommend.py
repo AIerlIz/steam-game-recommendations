@@ -382,8 +382,8 @@ def filter_series_deepsteam(recommendations: list, owned_games: list) -> list:
     standalone = []
 
     for rec in recommendations:
-        english_name = rec.get("english_name", rec.get("chinese_name", ""))
-        series = detect_series(english_name)
+        chinese_name = rec.get("chinese_name", "")
+        series = detect_series(chinese_name)
 
         if series:
             if series not in series_map:
@@ -527,7 +527,6 @@ def ai_analyze_and_recommend(
     {{
       "appid": 数字,
       "chinese_name": "中文名",
-      "english_name": "英文名",
       "tags": ["标签1", "标签2", "标签3"],
       "release_year": 年份数字,
       "reason": "推荐理由(说明匹配用户的哪条兴趣线)"
@@ -685,11 +684,10 @@ def main() -> None:
     print(f"\n   RRF排序结果:")
     for i, rec in enumerate(recommendations[:7], 1):
         tags = ", ".join(rec.get("tags", []))
-        chinese = rec.get('chinese_name', '未知')
-        english = rec.get('english_name', '')
+        name = rec.get('chinese_name', '未知')
         score = rec.get('rrf_score', 0)
         year = rec.get('release_year', '?')
-        print(f"   {i}. {chinese}({english}) [{tags}] Year:{year} RRF:{score:.4f}")
+        print(f"   {i}. {name} [{tags}] Year:{year} RRF:{score:.4f}")
 
     # DeepSteam: 系列感知过滤
     print("\n8. 系列感知过滤 (推新不推旧)...")
@@ -704,9 +702,8 @@ def main() -> None:
 
     max_validate = min(len(recommendations), 7)
     for rec in recommendations[:max_validate]:
-        english_name = rec.get("english_name", "")
         chinese_name = rec.get("chinese_name", "")
-        name_to_search = english_name or chinese_name
+        name_to_search = chinese_name
 
         if not name_to_search:
             print(f"   ✗ 无名称信息，跳过")

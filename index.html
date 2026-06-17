@@ -350,7 +350,7 @@
     </div>
 
     <script>
-        const APP_VERSION = 'v1.7.0';
+        const APP_VERSION = 'v1.7.1';
         const PROXY_BASE = '__PROXY_BASE__';
 
         // ===== UA 检测 =====
@@ -455,7 +455,7 @@
                 imgOnError: isRec ? '' : ' onerror="this.onerror=null;this.style.display=\'none\'"',
                 extraTags: isRec && game.on_sale ? `<span class="game-tag" style="--tag-c:#22c55e">促销</span>` : '',
                 extraDataTags: isRec && game.on_sale ? ',促销' : '',
-                copyField: game.english_name || game.name,
+                copyField: game.name,
                 statSection: isRec ? renderPrice(game.price, game.is_free) : ptText,
                 overlayText: game.reason || game.short_description || '',
                 overlayLabel: game.reason ? 'AI 推荐理由' : '游戏简介',
@@ -919,8 +919,9 @@
                 });
         }
 
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        document.querySelector('.tabs').addEventListener('click', e => {
+            const tab = e.target.closest('.tab');
+            if (tab) switchTab(tab.dataset.tab);
         });
 
         // ===== 骨架屏生成 =====

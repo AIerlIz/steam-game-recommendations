@@ -29,9 +29,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 注入 PROXY_BASE
-        run: sed -i "s|__PROXY_BASE__|${{ secrets.PROXY_BASE || 'https://cfproxy.aierliz.top' }}|g" index.html
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -44,7 +41,7 @@ jobs:
         if: ${{ !inputs.purge }}
         uses: ./.github/actions/download-data
         with:
-          files: 'library.json games_detail.json'
+          files: 'library.json games_detail.json index.html'
 
       - name: 获取 Steam 游戏库数据
         run: python .github/scripts/fetch_library.py

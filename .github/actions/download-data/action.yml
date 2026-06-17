@@ -17,7 +17,7 @@ runs:
           if [ "$HTTP_CODE" != "200" ]; then
             echo '{"games":[]}' > "$F"
             echo "Pages 返回 $HTTP_CODE, $F 使用空数据"
-          elif ! python3 -c "import json; json.load(open('$F'))" 2>/dev/null; then
+          elif [[ "$F" == *.json ]] && ! python3 -c "import json; json.load(open('$F'))" 2>/dev/null; then
             echo '{"games":[]}' > "$F"
             echo "JSON 解析失败, $F 使用空数据"
           fi
