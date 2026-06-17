@@ -18,7 +18,7 @@
 | `LLM_MODEL` | 可选，模型名 |
 | `RECOMMEND_K` | 可选，参考游戏数量曲线（默认 `200`） |
 | `STEAM_LANG` | 可选，Steam 语言（默认 `schinese`） |
-| `PROXY_BASE` | **必需**，CORS 代理地址，见下方说明 |
+| `PROXY_BASE` | CORS 代理地址，见下方说明 |
 
 ### 2. 手动运行
 
@@ -40,7 +40,7 @@ python3 .github/scripts/fill_library_details.py # 补全缺失详情
 
 | Workflow | 触发 | 功能 |
 |----------|------|------|
-| `auto_recommend.yml` | 每周一 03:00 + push 到 `auto_recommend.py` | AI 推荐 → 获取详情 → 部署 |
+| `auto_recommend.yml` | 每天 03:00 + push 到 `auto_recommend.py` | AI 推荐 → 获取详情 → 部署 |
 | `fetch_library.yml` | 每周六 03:00 + 手动 | 全量库数据获取 → 补全详情 → 部署 |
 | `deploy-pages.yml` | 推送 `index.html` / `library.json` / `games_detail.json` | 部署 GitHub Pages |
 
