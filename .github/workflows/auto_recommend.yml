@@ -56,9 +56,6 @@ jobs:
       - name: 获取Steam游戏详情
         run: python .github/scripts/fetch_steam.py
 
-      - name: 生成 RSS feed
-        run: python .github/scripts/generate_feed.py
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

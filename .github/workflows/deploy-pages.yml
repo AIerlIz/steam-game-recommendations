@@ -45,10 +45,6 @@ jobs:
         with:
           files: 'games_detail.json library.json games.json'
         
-      - name: 生成 RSS feed
-        if: ${{ !inputs.purge }}
-        run: python .github/scripts/generate_feed.py
-        
       - name: Setup Pages
         uses: actions/configure-pages@v5
         
