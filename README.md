@@ -42,7 +42,7 @@ python3 .github/scripts/fill_library_details.py # 补全缺失详情
 |----------|------|------|
 | `auto_recommend.yml` | 每天 03:00 + push 到 `auto_recommend.py` | AI 推荐 → 获取详情 → 部署 |
 | `fetch_library.yml` | 每周六 03:00 + 手动 | 全量库数据获取 → 补全详情 → 部署 |
-| `deploy-pages.yml` | 推送 `index.html` / `library.json` / `games_detail.json` | 部署 GitHub Pages |
+| `deploy-pages.yml` | 推送 `index.html`  | 部署 GitHub Pages |
 
 ## 架构
 
