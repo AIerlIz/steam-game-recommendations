@@ -1,6 +1,10 @@
-# 识游 · GameSeeker
+<p align="center">
+  <img src="assets/logo.svg" width="100" height="100" alt="GameSeeker">
+</p>
 
-基于 LLM 分析 Steam 游戏库偏好自动推荐未拥有游戏，同时提供完整的游戏库浏览与管理页面。
+<h1 align="center">识游 · GameSeeker</h1>
+
+<p align="center">基于 LLM 分析 Steam 游戏库偏好自动推荐未拥有游戏，同时提供完整的游戏库浏览与管理页面。</p>
 
 ## 快速开始
 
