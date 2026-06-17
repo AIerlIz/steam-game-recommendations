@@ -350,7 +350,7 @@
     </div>
 
     <script>
-        const APP_VERSION = 'v1.7.4';
+        const APP_VERSION = 'v1.8.0';
         const PROXY_BASE = '__PROXY_BASE__';
 
         // ===== UA 检测 =====
@@ -956,7 +956,7 @@
                 }
                 document.getElementById('recTabCount').textContent = games.length;
 
-                recGamesAll = games;
+                recGamesAll = games.filter(g => g.type === undefined || g.type === 'game');
                 rebuildRecUI();
                 document.getElementById('footer').innerHTML = '由 AI + DeepSteam V50 算法生成 | ' + new Date().toISOString().slice(0, 10) + ' <span id="version" style="color:#334155">' + APP_VERSION + '</span>';
                 bindGridWheel();

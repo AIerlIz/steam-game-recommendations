@@ -16,6 +16,9 @@ def fetch_one(appid: int, reason: str = "", rrf_score: float = 0) -> dict | None
         result = fetch_steam_details(appid, STEAM_LANG)
         if not result:
             return None
+        if result.get('type') != 'game':
+            print(f'  ✗ appid={appid}: skipped non-game type ({result.get("type")})')
+            return None
         if reason:
             result['reason'] = reason
         if rrf_score:
