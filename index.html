@@ -351,7 +351,7 @@
     </div>
 
     <script>
-        const APP_VERSION = 'v1.9.4';
+        const APP_VERSION = 'v1.9.5';
         const PROXY_BASE = '__PROXY_BASE__';
 
         // ===== UA 检测 =====
@@ -457,9 +457,13 @@
                         <img class="ss-lightbox-img" src="">
                     </div>` : ''}
                     <div class="card-actions">
+                        <a href="https://store.steampowered.com/app/${game.appid}/" target="_blank" class="btn-steam" onclick="event.stopPropagation()" style="flex:1">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            在 Steam 查看
+                        </a>
                         <a href="https://byrutgame.org/?do=search&subaction=search&story=${encodeURIComponent(game.name)}" target="_blank" class="btn-steam" data-name="${attrEsc(game.name)}" onclick="searchByrut(event);return false;" style="flex:1">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                            在 byrutgame 搜索
+                            byrutgame
                         </a>
                     </div>
                 </div>
