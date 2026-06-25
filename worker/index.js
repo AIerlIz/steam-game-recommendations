@@ -183,6 +183,11 @@ td{font-size:14px}
 .data-link:hover{text-decoration:underline}
 .logout-link{color:#94a3b8;text-decoration:none;font-size:14px;cursor:pointer}
 .logout-link:hover{color:#e2e8f0}
+.cfg-label{min-width:140px;font-size:13px;color:#94a3b8;padding-top:10px;font-family:monospace}
+.cfg-req{color:#dc2626;font-size:11px;padding-top:12px;min-width:32px}
+.cfg-status{font-size:13px;color:#94a3b8;margin-left:12px}
+select{flex:1;min-width:150px;padding:10px 14px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:14px}
+select:focus{outline:none;border-color:#a855f7}
 </style>
 </head>
 <body>
@@ -200,14 +205,6 @@ td{font-size:14px}
       <span class="logout-link" onclick="logout()">退出登录</span>
     </div>
     <div class="card">
-      <h3 style="margin-bottom:16px;font-size:16px">添加配置</h3>
-      <div class="form-row">
-        <input type="text" id="new-key" placeholder="配置名称（如 LLM_PROVIDER）">
-        <input type="text" id="new-value" placeholder="值">
-        <button class="btn btn-primary" onclick="addConfig()">添加</button>
-      </div>
-    </div>
-    <div class="card">
       <h3 style="margin-bottom:16px;font-size:16px">Telegram Bot</h3>
       <div class="form-row">
         <input type="password" id="tg-token" placeholder="Bot Token（从 @BotFather 获取）">
@@ -220,9 +217,66 @@ td{font-size:14px}
       <p id="tg-status" style="margin-top:8px;font-size:13px;color:#94a3b8"></p>
     </div>
     <div class="card">
-      <h3 style="margin-bottom:16px;font-size:16px">配置列表</h3>
+      <h3 style="margin-bottom:16px;font-size:16px">Steam 配置</h3>
+      <div class="form-row">
+        <span class="cfg-label">STEAM_API_KEY</span>
+        <input type="password" id="cfg-STEAM_API_KEY" placeholder="Steam Web API Key（https://steamcommunity.com/dev/apikey）">
+        <span class="cfg-req">必填</span>
+      </div>
+      <div class="form-row">
+        <span class="cfg-label">STEAM_USER_ID</span>
+        <input type="text" id="cfg-STEAM_USER_ID" placeholder="Steam 用户 ID 或自定义 URL">
+        <span class="cfg-req">必填</span>
+      </div>
+      <div class="form-row">
+        <span class="cfg-label">STEAM_LANG</span>
+        <input type="text" id="cfg-STEAM_LANG" placeholder="语言代码（默认 schinese）">
+      </div>
+      <button class="btn btn-primary" onclick="saveModule('steam')">保存 Steam 配置</button>
+      <span id="cfg-steam-status" class="cfg-status"></span>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:16px;font-size:16px">AI 模型</h3>
+      <div class="form-row">
+        <span class="cfg-label">LLM_PROVIDER</span>
+        <select id="cfg-LLM_PROVIDER">
+          <option value="">选择提供商</option>
+          <option value="gemini">Gemini</option>
+          <option value="openai">OpenAI</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="qwen">通义千问</option>
+        </select>
+        <span class="cfg-req">必填</span>
+      </div>
+      <div class="form-row">
+        <span class="cfg-label">LLM_API_KEY</span>
+        <input type="password" id="cfg-LLM_API_KEY" placeholder="LLM API Key">
+        <span class="cfg-req">必填</span>
+      </div>
+      <div class="form-row">
+        <span class="cfg-label">LLM_API_BASE</span>
+        <input type="text" id="cfg-LLM_API_BASE" placeholder="API 基础 URL（可选）">
+      </div>
+      <div class="form-row">
+        <span class="cfg-label">LLM_MODEL</span>
+        <input type="text" id="cfg-LLM_MODEL" placeholder="模型名（可选）">
+      </div>
+      <div class="form-row">
+        <span class="cfg-label">RECOMMEND_K</span>
+        <input type="number" id="cfg-RECOMMEND_K" placeholder="推荐数量（默认 200）">
+      </div>
+      <button class="btn btn-primary" onclick="saveModule('llm')">保存 AI 配置</button>
+      <span id="cfg-llm-status" class="cfg-status"></span>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:16px;font-size:16px">其他配置</h3>
+      <div class="form-row">
+        <input type="text" id="new-key" placeholder="配置名称">
+        <input type="text" id="new-value" placeholder="值">
+        <button class="btn btn-primary" onclick="addConfig()">添加</button>
+      </div>
       <div id="config-loading" class="loading">加载中...</div>
-      <div id="config-empty" class="empty hidden">暂无配置</div>
+      <div id="config-empty" class="empty hidden">暂无其他配置</div>
       <div id="config-table-wrap" class="hidden">
         <table><thead><tr><th>配置项</th><th>值</th><th>操作</th></tr></thead><tbody id="config-tbody"></tbody></table>
       </div>
@@ -284,37 +338,37 @@ async function logout() {
   document.getElementById('admin-view').classList.add('hidden');
 }
 
-async function loadConfigs() {
+const MODULES = { steam: ['STEAM_API_KEY', 'STEAM_USER_ID', 'STEAM_LANG'], llm: ['LLM_PROVIDER', 'LLM_API_KEY', 'LLM_API_BASE', 'LLM_MODEL', 'RECOMMEND_K'] };
+const ALL_MODULE_KEYS = [].concat(...Object.values(MODULES));
+const HIDDEN_KEYS = ['TELEGRAM', ...ALL_MODULE_KEYS];
+
+function setCfgVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+
+function renderModuleCards(configs) {
+  const tgRaw = configs['TELEGRAM'];
+  if (tgRaw) {
+    try { const tg = JSON.parse(tgRaw.value); setCfgVal('tg-token', tg.token); setCfgVal('tg-admin', tg.adminChatId); } catch(e) {}
+  }
+  for (const key of MODULES.steam) setCfgVal('cfg-' + key, configs[key]?.value || '');
+  for (const key of MODULES.llm) setCfgVal('cfg-' + key, configs[key]?.value || '');
+}
+
+function renderOtherConfigs(configs) {
   const loading = document.getElementById('config-loading');
   const empty = document.getElementById('config-empty');
   const tableWrap = document.getElementById('config-table-wrap');
   const tbody = document.getElementById('config-tbody');
-  loading.classList.remove('hidden');
+  loading.classList.add('hidden');
   empty.classList.add('hidden');
   tableWrap.classList.add('hidden');
   tbody.innerHTML = '';
-  const resp = await api('/admin/api/config');
-  if (!resp.ok) { toast('加载失败', 'error'); return; }
-  const configs = await resp.json();
-  loading.classList.add('hidden');
-  const keys = Object.keys(configs);
-  if (!keys.length) { empty.classList.remove('hidden'); return; }
+  const otherKeys = Object.keys(configs).filter(k => !HIDDEN_KEYS.includes(k));
+  if (!otherKeys.length) { empty.classList.remove('hidden'); return; }
   tableWrap.classList.remove('hidden');
-  // Populate Telegram fields
-  const tgRaw = configs['TELEGRAM'];
-  if (tgRaw) {
-    try {
-      const tg = JSON.parse(tgRaw.value);
-      document.getElementById('tg-token').value = tg.token || '';
-      document.getElementById('tg-admin').value = tg.adminChatId || '';
-    } catch(e) {}
-  }
-
-  for (const key of keys) {
-    if (HIDDEN_KEYS.includes(key)) continue;
-    const tr = document.createElement('tr');
-      const isSensitive = configs[key].sensitive;
+  for (const key of otherKeys) {
+    const isSensitive = configs[key].sensitive;
     const masked = isSensitive ? '••••••••' : configs[key].value;
+    const tr = document.createElement('tr');
     tr.innerHTML = '<td class="key-cell">' + esc(key) + '</td>' +
       '<td class="val-cell"><span id="val-' + esc(key) + '">' + esc(masked) + '</span>' +
       (isSensitive ? \` <button class="eye-btn" onclick="toggleShow('\${esc(key)}')">👁</button>\` : '') +
@@ -322,6 +376,30 @@ async function loadConfigs() {
       \`<td class="actions"><button class="btn btn-sm btn-danger" onclick="deleteConfig('\${esc(key)}')">删除</button></td>\`;
     tbody.appendChild(tr);
   }
+}
+
+async function loadConfigs() {
+  const resp = await api('/admin/api/config');
+  if (!resp.ok) { toast('加载失败', 'error'); return; }
+  const configs = await resp.json();
+  renderModuleCards(configs);
+  renderOtherConfigs(configs);
+}
+
+async function saveModule(name) {
+  const keys = MODULES[name];
+  if (!keys) return;
+  let saved = 0;
+  for (const key of keys) {
+    const val = (document.getElementById('cfg-' + key)?.value || '').trim();
+    if (!val) continue;
+    const resp = await api('/admin/api/config', { method: 'PUT', body: JSON.stringify({ key, value: val }) });
+    if (resp.ok) saved++;
+  }
+  const status = document.getElementById('cfg-' + name + '-status');
+  if (status) { status.textContent = '已保存 ' + saved + ' 项'; setTimeout(() => status.textContent = '', 3000); }
+  toast('已保存 ' + saved + ' 项');
+  loadConfigs();
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
