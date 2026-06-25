@@ -19,11 +19,13 @@ export async function fetchLibrary(env) {
   const playtimeMap = {};
   for (const g of owned) playtimeMap[g.appid] = g.playtime_hours;
 
-  const detailMap = await batchFetch(appids, aid => fetchSteamDetails(aid, lang), { maxWorkers: 8, delay: 0.3, progressInterval: 20 });
+  const detailMap = await batchFetch(appids, aid => fetchSteamDetails(aid, lang), { maxWorkers: 20, delay: 0.2 });
 
   console.log(`获取评测数据 (${Object.keys(detailMap).length} 款)...`);
-  const reviewAppids = Object.keys(detailMap).map(Number).sort((a, b) => (playtimeMap[b] || 0) - (playtimeMap[a] || 0));
-  const reviewMap = await batchFetch(reviewAppids, aid => fetchReview(aid, lang), { maxWorkers: 8, delay: 0.3 });
+  const reviewAppids = Object.keys(detailMap).map(Number)
+    .sort((a, b) => (playtimeMap[b] || 0) - (playtimeMap[a] || 0))
+    .slice(0, 50);
+  const reviewMap = await batchFetch(reviewAppids, aid => fetchReview(aid, lang), { maxWorkers: 10, delay: 0.2 });
 
   console.log('合并数据...');
   const libraryGames = owned.map(g => {

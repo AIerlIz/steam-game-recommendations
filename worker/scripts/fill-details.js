@@ -20,14 +20,16 @@ export async function fillDetails(env) {
 
   console.log('获取游戏详情...');
   const needAppids = needFill.map(g => g.appid);
-  const detailMap = await batchFetch(needAppids, aid => fetchSteamDetails(aid, lang), { maxWorkers: 8, delay: 0.3, progressInterval: 10 });
+  const detailMap = await batchFetch(needAppids, aid => fetchSteamDetails(aid, lang), { maxWorkers: 20, delay: 0.2 });
 
-  const played = needFill.filter(g => (g.playtime_hours || 0) > 0);
+  const played = needFill.filter(g => (g.playtime_hours || 0) > 0)
+    .sort((a, b) => (b.playtime_hours || 0) - (a.playtime_hours || 0))
+    .slice(0, 30);
   const playedAppids = played.map(g => g.appid);
   let reviewMap = {};
   if (playedAppids.length) {
     console.log(`获取评测数据 (${played.length} 款)...`);
-    reviewMap = await batchFetch(playedAppids, aid => fetchReview(aid, lang), { maxWorkers: 8, delay: 0.3 });
+    reviewMap = await batchFetch(playedAppids, aid => fetchReview(aid, lang), { maxWorkers: 10, delay: 0.2 });
   }
 
   let updated = 0;
