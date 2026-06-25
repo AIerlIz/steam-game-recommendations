@@ -94,13 +94,22 @@ async function handleAdminLogout(request, env) {
 async function handleAdminApi(request, env) {
   const url = new URL(request.url);
   const method = request.method;
+  const SENSITIVE_KEYS = ['STEAM_API_KEY', 'LLM_API_KEY'];
 
   if (method === 'GET') {
+    if (url.searchParams.has('reveal')) {
+      const revealKey = url.searchParams.get('reveal');
+      if (!SENSITIVE_KEYS.includes(revealKey)) return jsonResponse({ error: '不可查看' }, 403);
+      const val = await env.KV.get(`config:${revealKey}`);
+      return jsonResponse({ value: val || '' });
+    }
     const list = await env.KV.list({ prefix: 'config:' });
     const configs = {};
     for (const key of list.keys) {
       const val = await env.KV.get(key.name);
-      configs[key.name.replace('config:', '')] = { value: val };
+      const configKey = key.name.replace('config:', '');
+      const isSensitive = SENSITIVE_KEYS.includes(configKey);
+      configs[configKey] = { value: isSensitive ? '****' : val, sensitive: isSensitive || configKey === 'TELEGRAM' };
     }
     return jsonResponse(configs);
   }
@@ -223,7 +232,6 @@ td{font-size:14px}
 <div id="toast" class="toast"></div>
 <script>
 const HIDDEN_KEYS = ['TELEGRAM'];
-const SENSITIVE_KEYS = ['STEAM_API_KEY','LLM_API_KEY'];
 
 async function api(path, opts = {}) {
   const resp = await fetch(path, {
@@ -305,7 +313,7 @@ async function loadConfigs() {
   for (const key of keys) {
     if (HIDDEN_KEYS.includes(key)) continue;
     const tr = document.createElement('tr');
-    const isSensitive = SENSITIVE_KEYS.includes(key);
+      const isSensitive = configs[key].sensitive;
     const masked = isSensitive ? '••••••••' : configs[key].value;
     tr.innerHTML = '<td class="key-cell">' + esc(key) + '</td>' +
       '<td class="val-cell"><span id="val-' + esc(key) + '">' + esc(masked) + '</span>' +
@@ -324,8 +332,10 @@ function toggleShow(key) {
     el.textContent = '••••••••';
     el.dataset.revealed = 'false';
   } else {
-    loadConfigs();
-    el.dataset.revealed = 'true';
+    api('/admin/api/config?reveal=' + encodeURIComponent(key)).then(r => r.json()).then(data => {
+      el.textContent = data.value;
+      el.dataset.revealed = 'true';
+    });
   }
 }
 
@@ -432,6 +442,8 @@ export default {
     }
 
     if (path === '/api/bot/set-webhook') {
+      const session = await requireAuth(request, env);
+      if (!session) return jsonResponse({ error: '未登录' }, 401);
       const tgConfig = await env.KV.get('config:TELEGRAM', 'json');
       const token = tgConfig?.token;
       if (!token) return new Response('Bot not configured', { status: 200 });
@@ -445,6 +457,13 @@ export default {
 
     if (path.startsWith('/api/proxy/')) {
       const targetUrl = path.replace('/api/proxy/', '') + url.search;
+      const allowedHosts = ['store.steampowered.com', 'api.steampowered.com', 'steamcdn-a.akamaihd.net'];
+      try {
+        const targetHost = new URL(targetUrl).hostname;
+        if (!allowedHosts.some(h => targetHost === h || targetHost.endsWith('.' + h))) {
+          return new Response('Forbidden', { status: 403 });
+        }
+      } catch { return new Response('Invalid URL', { status: 400 }); }
       try {
         const resp = await fetch(targetUrl, {
           method: request.method,
@@ -475,7 +494,6 @@ export default {
       }
       case '30 3 * * 1': {
         console.log('开始每周游戏库同步...');
-        const libBefore = (await env.KV.get('data:library', 'json'))?.games?.length || 0;
         await fetchLibrary(env).catch(e => console.error('fetchLibrary 失败:', e));
         await fillDetails(env).catch(e => console.error('fillDetails 失败:', e));
         const libAfter = (await env.KV.get('data:library', 'json'))?.games?.length || 0;

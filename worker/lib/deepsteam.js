@@ -268,8 +268,8 @@ export function filterSeriesDeepsteam(recommendations, ownedGames) {
   const seriesMap = {};
   const standalone = [];
   for (const rec of recommendations) {
-    const chineseName = rec.chinese_name || '';
-    const series = detectSeries(chineseName);
+    const searchName = rec.name || rec.chinese_name || '';
+    const series = detectSeries(searchName);
     if (series) {
       (seriesMap[series] = seriesMap[series] || []).push({ ...rec, _series_year: rec.release_year || 0, _series: series });
     } else {
@@ -363,6 +363,7 @@ ${existingText}
   "recommendations": [
     {
       "appid": 数字,
+      "name": "English name",
       "chinese_name": "中文名",
       "tags": ["标签1", "标签2", "标签3"],
       "release_year": 年份数字,
@@ -463,10 +464,15 @@ export async function autoRecommend(env) {
   console.log('验证appid...');
   const validated = [];
   const maxValidate = Math.min(filteredRecs.length, 7);
-  for (const rec of filteredRecs.slice(0, maxValidate)) {
+  const verifyBatch = filteredRecs.slice(0, maxValidate);
+  const results = await Promise.all(verifyBatch.map(rec => {
     const nameToSearch = rec.chinese_name;
-    if (!nameToSearch) continue;
-    const corrected = await steamSearchByName(nameToSearch);
+    if (!nameToSearch) return Promise.resolve(null);
+    return steamSearchByName(nameToSearch);
+  }));
+  for (let i = 0; i < verifyBatch.length; i++) {
+    const rec = verifyBatch[i];
+    const corrected = results[i];
     if (!corrected || corrected.type !== 'app') continue;
     rec.appid = corrected.appid;
     rec.verified_name = corrected.name;

@@ -2,10 +2,6 @@ import { getTelegramConfig } from './steam.js';
 
 // ========== Telegram API ==========
 
-function tgApi(method) {
-  return (token) => `https://api.telegram.org/bot${token}/${method}`;
-}
-
 async function tgCall(token, method, body) {
   const url = `https://api.telegram.org/bot${token}/${method}`;
   const resp = await fetch(url, {

@@ -4,21 +4,21 @@ export function sleep(ms) {
 
 export async function requestWithRetry(url, maxRetries = 3, delay = 1.0, opts = {}) {
   const timeout = opts.timeout || 15;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout * 1000);
   for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout * 1000);
     try {
       const resp = await fetch(url, { ...opts, signal: controller.signal });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       clearTimeout(timer);
       return resp;
     } catch (e) {
+      clearTimeout(timer);
       if (attempt < maxRetries - 1) {
         await sleep(delay * Math.pow(2, attempt) * 1000);
       }
     }
   }
-  clearTimeout(timer);
   return null;
 }
 

@@ -1,4 +1,4 @@
-import { fetchSteamDetails, fetchReview, getConfig } from '../lib/steam.js';
+import { fetchSteamDetails, fetchReview, getConfig, batchFetch } from '../lib/steam.js';
 
 export async function fetchSteam(env) {
   const lang = await getConfig(env, 'STEAM_LANG', 'schinese');
@@ -34,19 +34,16 @@ export async function fetchSteam(env) {
 
   const newDetails = {};
   const entries = Object.entries(appidInfo);
-  for (let i = 0; i < entries.length; i++) {
-    const [aid, info] = entries[i];
-    try {
-      const result = await fetchSteamDetails(parseInt(aid), lang);
-      if (result) {
-        if (info.reason) result.reason = info.reason;
-        if (info.rrf_score) result.rrf_score = info.rrf_score;
-        result.review = await fetchReview(parseInt(aid), lang);
-        newDetails[result.appid] = result;
-        console.log(`  [${i + 1}/${entries.length}] ✓ ${result.name}`);
-      }
-    } catch (e) {
-      console.log(`  ✗ appid=${aid}: ${e}`);
+  const detailsMap = await batchFetch(entries.map(e => parseInt(e[0])), (aid) => fetchSteamDetails(aid, lang), { maxWorkers: 8 });
+  const reviewMap = await batchFetch(entries.map(e => parseInt(e[0])), (aid) => fetchReview(aid, lang), { maxWorkers: 8 });
+
+  for (const [aid, info] of entries) {
+    const result = detailsMap[parseInt(aid)];
+    if (result) {
+      if (info.reason) result.reason = info.reason;
+      if (info.rrf_score) result.rrf_score = info.rrf_score;
+      result.review = reviewMap[parseInt(aid)] || null;
+      newDetails[result.appid] = result;
     }
   }
 
