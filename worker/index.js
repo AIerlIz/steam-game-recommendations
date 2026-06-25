@@ -309,9 +309,9 @@ async function loadConfigs() {
     const masked = isSensitive ? '••••••••' : configs[key].value;
     tr.innerHTML = '<td class="key-cell">' + esc(key) + '</td>' +
       '<td class="val-cell"><span id="val-' + esc(key) + '">' + esc(masked) + '</span>' +
-      (isSensitive ? ' <button class="eye-btn" onclick="toggleShow(\'' + esc(key) + '\')">👁</button>' : '') +
+      (isSensitive ? \` <button class="eye-btn" onclick="toggleShow('\${esc(key)}')">👁</button>\` : '') +
       '</td>' +
-      '<td class="actions"><button class="btn btn-sm btn-danger" onclick="deleteConfig(\'' + esc(key) + '\')">删除</button></td>';
+      \`<td class="actions"><button class="btn btn-sm btn-danger" onclick="deleteConfig('\${esc(key)}')">删除</button></td>\`;
     tbody.appendChild(tr);
   }
 }
