@@ -26,3 +26,9 @@ docs/
 # 临时文件
 *.tmp
 *.log
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
