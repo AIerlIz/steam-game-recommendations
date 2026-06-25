@@ -285,8 +285,6 @@ select:focus{outline:none;border-color:#a855f7}
 </div>
 <div id="toast" class="toast"></div>
 <script>
-const HIDDEN_KEYS = ['TELEGRAM'];
-
 async function api(path, opts = {}) {
   const resp = await fetch(path, {
     headers: { 'Content-Type': 'application/json', ...opts.headers },
@@ -340,17 +338,29 @@ async function logout() {
 
 const MODULES = { steam: ['STEAM_API_KEY', 'STEAM_USER_ID', 'STEAM_LANG'], llm: ['LLM_PROVIDER', 'LLM_API_KEY', 'LLM_API_BASE', 'LLM_MODEL', 'RECOMMEND_K'] };
 const ALL_MODULE_KEYS = [].concat(...Object.values(MODULES));
+const SENSITIVE_MODULE_KEYS = ['STEAM_API_KEY', 'LLM_API_KEY'];
 const HIDDEN_KEYS = ['TELEGRAM', ...ALL_MODULE_KEYS];
+let currentConfigs = {};
 
-function setCfgVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+function setCfgVal(id, val, sensitive = false) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = sensitive ? '' : (val || '');
+  if (sensitive && val) {
+    el.placeholder = '已配置，留空表示不修改';
+    el.dataset.configured = 'true';
+  } else {
+    delete el.dataset.configured;
+  }
+}
 
 function renderModuleCards(configs) {
   const tgRaw = configs['TELEGRAM'];
   if (tgRaw) {
     try { const tg = JSON.parse(tgRaw.value); setCfgVal('tg-token', tg.token); setCfgVal('tg-admin', tg.adminChatId); } catch(e) {}
   }
-  for (const key of MODULES.steam) setCfgVal('cfg-' + key, configs[key]?.value || '');
-  for (const key of MODULES.llm) setCfgVal('cfg-' + key, configs[key]?.value || '');
+  for (const key of MODULES.steam) setCfgVal('cfg-' + key, configs[key]?.value || '', SENSITIVE_MODULE_KEYS.includes(key) && !!configs[key]);
+  for (const key of MODULES.llm) setCfgVal('cfg-' + key, configs[key]?.value || '', SENSITIVE_MODULE_KEYS.includes(key) && !!configs[key]);
 }
 
 function renderOtherConfigs(configs) {
@@ -382,6 +392,7 @@ async function loadConfigs() {
   const resp = await api('/admin/api/config');
   if (!resp.ok) { toast('加载失败', 'error'); return; }
   const configs = await resp.json();
+  currentConfigs = configs;
   renderModuleCards(configs);
   renderOtherConfigs(configs);
 }
@@ -392,8 +403,14 @@ async function saveModule(name) {
   let saved = 0;
   for (const key of keys) {
     const val = (document.getElementById('cfg-' + key)?.value || '').trim();
-    if (!val) continue;
-    const resp = await api('/admin/api/config', { method: 'PUT', body: JSON.stringify({ key, value: val }) });
+    let resp;
+    if (!val) {
+      if (SENSITIVE_MODULE_KEYS.includes(key)) continue;
+      if (!currentConfigs[key]) continue;
+      resp = await api('/admin/api/config', { method: 'DELETE', body: JSON.stringify({ key }) });
+    } else {
+      resp = await api('/admin/api/config', { method: 'PUT', body: JSON.stringify({ key, value: val }) });
+    }
     if (resp.ok) saved++;
   }
   const status = document.getElementById('cfg-' + name + '-status');
