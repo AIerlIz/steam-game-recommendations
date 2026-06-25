@@ -1,0 +1,24 @@
+name: 'Download Data Files'
+description: '从 GitHub Pages 下载数据文件，失败时回退空 JSON'
+inputs:
+  files:
+    description: '空格分隔的需要下载的文件列表'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - shell: bash
+      run: |
+        OWNER="${{ github.repository_owner }}"
+        REPO="${{ github.event.repository.name }}"
+        for F in ${{ inputs.files }}; do
+          URL="https://${OWNER}.github.io/${REPO}/${F}"
+          HTTP_CODE=$(curl -sL -o "$F" -w "%{http_code}" "$URL")
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo '{"games":[]}' > "$F"
+            echo "Pages 返回 $HTTP_CODE, $F 使用空数据"
+          elif [[ "$F" == *.json ]] && ! python3 -c "import json; json.load(open('$F'))" 2>/dev/null; then
+            echo '{"games":[]}' > "$F"
+            echo "JSON 解析失败, $F 使用空数据"
+          fi
+        done

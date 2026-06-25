@@ -1,0 +1,68 @@
+name: Fetch Library Data
+
+on:
+  schedule:
+    - cron: '30 3 * * 1'  # 每周一凌晨 3:30
+  workflow_dispatch:
+    inputs:
+      purge:
+        description: '清空已有数据重新拉取'
+        type: boolean
+        default: false
+        required: false
+  push:
+    paths:
+      - '.github/scripts/fetch_library.py'
+
+jobs:
+  fetch-library:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      TZ: Asia/Shanghai
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: 下载当前数据
+        if: ${{ !inputs.purge }}
+        uses: ./.github/actions/download-data
+        with:
+          files: 'library.json games_detail.json index.html'
+
+      - name: 获取 Steam 游戏库数据
+        run: python .github/scripts/fetch_library.py
+        env:
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
+          STEAM_USER_ID: ${{ secrets.STEAM_USER_ID }}
+
+      - name: 补全游戏详情
+        run: python .github/scripts/fill_library_details.py
+        env:
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
+          STEAM_USER_ID: ${{ secrets.STEAM_USER_ID }}
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

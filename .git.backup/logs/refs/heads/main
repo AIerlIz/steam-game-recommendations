@@ -1,0 +1,209 @@
+0000000000000000000000000000000000000000 9d6dd8c7cb17113b6ac160daac598fbde15db693 AIerlIz <shenrongsen@outlook.com> 1781485451 +0800	commit (initial): init: Steam 游戏推荐系统
+9d6dd8c7cb17113b6ac160daac598fbde15db693 9d6dd8c7cb17113b6ac160daac598fbde15db693 AIerlIz <shenrongsen@outlook.com> 1781485451 +0800	Branch: renamed refs/heads/latest to refs/heads/main
+9d6dd8c7cb17113b6ac160daac598fbde15db693 83130bf48b38e6416b9d262f7446b9903827f98a AIerlIz <shenrongsen@outlook.com> 1781492528 +0800	commit: fix: skeleton card size mismatch with actual game card
+83130bf48b38e6416b9d262f7446b9903827f98a c066470c7f2e24f6a6442248f3f72935b548710a AIerlIz <shenrongsen@outlook.com> 1781492588 +0800	commit (amend): fix: 修复骨架加载和实际卡片大小不一致
+c066470c7f2e24f6a6442248f3f72935b548710a 7348cee94329bb71f1f023dbed866703fafd87f6 AIerlIz <shenrongsen@outlook.com> 1781492649 +0800	pull --rebase origin main (finish): refs/heads/main onto a0bb3b33c0cb40f9a8adeba0f93284aa67bc42a3
+7348cee94329bb71f1f023dbed866703fafd87f6 5bacebc6446d5d6f569409e07c91601338755b95 AIerlIz <shenrongsen@outlook.com> 1781493005 +0800	commit: fix: 移动端禁用截图缩略图点击跳转
+5bacebc6446d5d6f569409e07c91601338755b95 b990a0e69fc4ef02099a296c40642f97acbee6e9 AIerlIz <shenrongsen@outlook.com> 1781493216 +0800	commit: feat: 移动端点击截图采用桌面端悬停放大效果
+b990a0e69fc4ef02099a296c40642f97acbee6e9 a0bb3b33c0cb40f9a8adeba0f93284aa67bc42a3 AIerlIz <shenrongsen@outlook.com> 1781493834 +0800	reset: moving to a0bb3b3
+a0bb3b33c0cb40f9a8adeba0f93284aa67bc42a3 6fe36004935cbf1d69ec5b261dcf0e47f54e2170 AIerlIz <shenrongsen@outlook.com> 1781493834 +0800	commit: feat: 截图缩略图交互改为 UA 判断，iPad Pro 走手机逻辑
+6fe36004935cbf1d69ec5b261dcf0e47f54e2170 b2d3af26e7e68249776e8170531a058f34b12998 AIerlIz <shenrongsen@outlook.com> 1781493879 +0800	commit (amend): feat: 截图缩略图改用 UA 检测区分移动端，iPad 统一为点击放大
+b2d3af26e7e68249776e8170531a058f34b12998 1d751e5cfa320aa692905c58052ea7d3342bc40c AIerlIz <shenrongsen@outlook.com> 1781494041 +0800	commit (amend): feat: 截图缩略图改用 UA 检测区分移动端，iPad 统一为点击放大
+1d751e5cfa320aa692905c58052ea7d3342bc40c 0eec4f61cdd696aaec52ab76958efdb6db3c6df9 AIerlIz <shenrongsen@outlook.com> 1781494684 +0800	commit (amend): feat: 截图缩略图改用 UA 检测区分移动端，iPad 统一为点击放大
+0eec4f61cdd696aaec52ab76958efdb6db3c6df9 1df962ea510d8513908e9ca04f32ee274403aa66 AIerlIz <shenrongsen@outlook.com> 1781494913 +0800	commit (amend): feat: 截图缩略图改用 UA 检测区分移动端，iPad 统一为点击放大
+1df962ea510d8513908e9ca04f32ee274403aa66 a31e64126f698a07e19b994ccee656a6d1ab4a78 AIerlIz <shenrongsen@outlook.com> 1781495127 +0800	commit (amend): feat: 截图缩略图改用 Lightbox 居中显示，支持左右滑动切换全部截图
+a31e64126f698a07e19b994ccee656a6d1ab4a78 f93cb7a1b339bfaa8ef915e5099d6fe9fdc99bce AIerlIz <shenrongsen@outlook.com> 1781495389 +0800	commit (amend): feat: 截图缩略图改用 Lightbox 居中显示，支持左右滑动切换全部截图
+f93cb7a1b339bfaa8ef915e5099d6fe9fdc99bce c5cb05870631a2884d0b64a52b12e22fbd77e945 AIerlIz <shenrongsen@outlook.com> 1781495514 +0800	commit (amend): feat: 截图缩略图改用 Lightbox 居中显示，支持左右滑动切换全部截图
+c5cb05870631a2884d0b64a52b12e22fbd77e945 d2a5c84b94e5f3f437ad51b52db311150b4e85e5 AIerlIz <shenrongsen@outlook.com> 1781495675 +0800	commit (amend): feat: 截图缩略图改用 Lightbox 居中显示，支持左右滑动切换全部截图
+d2a5c84b94e5f3f437ad51b52db311150b4e85e5 bede9d9a320a488d5c65c0657062bf09bd52e33b AIerlIz <shenrongsen@outlook.com> 1781495750 +0800	commit (amend): feat: 截图缩略图改用 Lightbox 居中显示，支持左右滑动切换全部截图
+bede9d9a320a488d5c65c0657062bf09bd52e33b 78b37817ee20cb7aeaf2977075241487319e3faf AIerlIz <shenrongsen@outlook.com> 1781495893 +0800	commit (amend): feat: 截图缩略图改用 Lightbox 居中显示，支持左右滑动切换全部截图
+78b37817ee20cb7aeaf2977075241487319e3faf 8de8d42be8ff1130e6088631a762bf364fb213f0 AIerlIz <shenrongsen@outlook.com> 1781496151 +0800	commit (amend): feat: 截图缩略图改用 Lightbox 居中显示，支持左右滑动切换全部截图
+8de8d42be8ff1130e6088631a762bf364fb213f0 2dcff1a23dbd5677461b16b609c66a0c16f84358 AIerlIz <shenrongsen@outlook.com> 1781496392 +0800	commit (amend): feat: 截图缩略图改用 Lightbox 居中显示，支持左右滑动切换全部截图
+2dcff1a23dbd5677461b16b609c66a0c16f84358 b21fdaf036b5fc90747d5e5d47631512c9daa3d7 AIerlIz <shenrongsen@outlook.com> 1781497459 +0800	commit: chore: install best-skills (codegen-diagram, codegen-doc, frontend-design, md-report-summary)
+b21fdaf036b5fc90747d5e5d47631512c9daa3d7 fa68b04f75f4bfede944c7ec292fea51877a17af AIerlIz <shenrongsen@outlook.com> 1781519842 +0800	commit: feat: 点击游戏名复制英文名，带已复制反馈
+fa68b04f75f4bfede944c7ec292fea51877a17af 4f7052a122aba9bafe5792f5f0850fef08d9a03b AIerlIz <shenrongsen@outlook.com> 1781519849 +0800	pull --rebase (finish): refs/heads/main onto 6836c44c66e6a2987400344d07463fb9f79ce5eb
+4f7052a122aba9bafe5792f5f0850fef08d9a03b dd7d3b9fa6e64342f0f90c1ed49b905ef5924bcb AIerlIz <shenrongsen@outlook.com> 1781520160 +0800	commit: feat: 抓取独立英文名，点击游戏名复制英文名
+dd7d3b9fa6e64342f0f90c1ed49b905ef5924bcb 4ba4f1a0e49b8c5402225f4806733f2f7fb3e65c AIerlIz <shenrongsen@outlook.com> 1781520676 +0800	commit: refactor: 移除冗余 chinese_name，name 即中文名
+4ba4f1a0e49b8c5402225f4806733f2f7fb3e65c 0ab242f0bd5ba9edb082a124208e104c8a0e2dc4 AIerlIz <shenrongsen@outlook.com> 1781520683 +0800	pull --rebase (finish): refs/heads/main onto bc9ed6a787077dbc5a7a6687e39e47243b5f7fc4
+0ab242f0bd5ba9edb082a124208e104c8a0e2dc4 6836c44c66e6a2987400344d07463fb9f79ce5eb AIerlIz <shenrongsen@outlook.com> 1781520791 +0800	reset: moving to 6836c44
+6836c44c66e6a2987400344d07463fb9f79ce5eb 7316e1e6cf7edcee01f1aba30e222f67789c98ad AIerlIz <shenrongsen@outlook.com> 1781520791 +0800	commit: feat: 点击游戏名复制英文名（独立抓取 + 移除 chinese_name）
+7316e1e6cf7edcee01f1aba30e222f67789c98ad 6013e6aeef8d1b0abedd9ee342ec782604e41538 AIerlIz <shenrongsen@outlook.com> 1781532087 +0800	commit: fix: 代码审查修复 — XSS 转义、clipboard fallback、Session 复用
+6013e6aeef8d1b0abedd9ee342ec782604e41538 0da60d8b405a11c9a42eb711d844d418500159c1 AIerlIz <shenrongsen@outlook.com> 1781532348 +0800	commit: style: 自定义排序下拉，与 tag 筛选按钮风格统一
+0da60d8b405a11c9a42eb711d844d418500159c1 bf43f8a0724a6f8decaabac7b1dff2990ca8a01b AIerlIz <shenrongsen@outlook.com> 1781532515 +0800	commit: chore: 添加版本号显示及版本管理规范
+bf43f8a0724a6f8decaabac7b1dff2990ca8a01b 29501f69a0b581cec0010551167b9919f846d458 AIerlIz <shenrongsen@outlook.com> 1781532706 +0800	commit: style: 排序下拉宽度自适应并居中
+29501f69a0b581cec0010551167b9919f846d458 48950acdaf80fe29bfa256dfa72c268918e6b8c7 AIerlIz <shenrongsen@outlook.com> 1781533479 +0800	commit: feat: 游戏库页面 — tab 切换、库卡片、名称搜索、游玩排序
+48950acdaf80fe29bfa256dfa72c268918e6b8c7 012d024de0fb371cabd51ec112a53a6dfb74485b AIerlIz <shenrongsen@outlook.com> 1781533788 +0800	commit: fix: 代码审查修复 — appid 过滤、空状态文案、API_KEY 日志脱敏
+012d024de0fb371cabd51ec112a53a6dfb74485b 82cf4e3ae36e365b79628b943d1c42c90c697cc7 AIerlIz <shenrongsen@outlook.com> 1781534156 +0800	commit: refactor: 游戏库工作流解耦，前端从 appid 构建封面 URL
+82cf4e3ae36e365b79628b943d1c42c90c697cc7 103733b4e829efc7c2a51791f428f79ce2507203 AIerlIz <shenrongsen@outlook.com> 1781535330 +0800	commit: refactor: 统一推荐和库的 toolbar 逻辑
+103733b4e829efc7c2a51791f428f79ce2507203 3550355700b8ca967d4cbdc5ba5f1f4c01d2d03d AIerlIz <shenrongsen@outlook.com> 1781535337 +0800	pull --rebase (finish): refs/heads/main onto 1d393581eeb7820f64bf539569cddaf1608bec89
+3550355700b8ca967d4cbdc5ba5f1f4c01d2d03d 9e106380109b4b786cb25cd3e2766df3f3d3042e AIerlIz <shenrongsen@outlook.com> 1781535723 +0800	commit: feat: 推荐卡片显示游戏简介，库卡片与推荐卡片结构一致，全局中文优先
+9e106380109b4b786cb25cd3e2766df3f3d3042e 9bc83ce1c57c7d1572c98557396a2ab21de5ec20 AIerlIz <shenrongsen@outlook.com> 1781535884 +0800	revert: Revert "feat: 推荐卡片显示游戏简介，库卡片与推荐卡片结构一致，全局中文优先"
+9bc83ce1c57c7d1572c98557396a2ab21de5ec20 42b92576254163f4c29ed1f843e44f7828fb1242 AIerlIz <shenrongsen@outlook.com> 1781535890 +0800	pull --rebase (finish): refs/heads/main onto e0031a1eefc89347ad72d0284d31a3b139518966
+42b92576254163f4c29ed1f843e44f7828fb1242 e69e9de17cb144da50f329f5866871d699beb9e2 AIerlIz <shenrongsen@outlook.com> 1781536339 +0800	commit: feat: 库卡片与推荐卡片样式一致，增加简介与标签
+e69e9de17cb144da50f329f5866871d699beb9e2 3c932a975e2611273c2d83950896b208597e960a AIerlIz <shenrongsen@outlook.com> 1781536340 +0800	pull --rebase (finish): refs/heads/main onto 25fa543c48269759de6ec424de0c3e68e7c5b59a
+3c932a975e2611273c2d83950896b208597e960a 29501f69a0b581cec0010551167b9919f846d458 AIerlIz <shenrongsen@outlook.com> 1781536720 +0800	reset: moving to 29501f6
+29501f69a0b581cec0010551167b9919f846d458 085fe2fad382c232dd66393d47c68cf8bf8a5233 AIerlIz <shenrongsen@outlook.com> 1781538097 +0800	commit: feat: Steam 游戏库展示功能
+085fe2fad382c232dd66393d47c68cf8bf8a5233 6204741d06f47cdc9e9e0df8ac841a8408a9e0d9 AIerlIz <shenrongsen@outlook.com> 1781538248 +0800	pull --tags origin main: Fast-forward
+6204741d06f47cdc9e9e0df8ac841a8408a9e0d9 61cf0057f49f71f2218fdb9d80aabaa8f80d0166 AIerlIz <shenrongsen@outlook.com> 1781538878 +0800	commit: fix: Steam appdetails API 改为逐个请求（不支持逗号分隔多 appid）
+61cf0057f49f71f2218fdb9d80aabaa8f80d0166 b7047d281b81c4827989024bc0169ce9e190abff AIerlIz <shenrongsen@outlook.com> 1781539452 +0800	commit: feat: 补全游戏库详情数据（图片、描述、标签）
+b7047d281b81c4827989024bc0169ce9e190abff 5f7a0e3a0e332d01a098b01f2ed6722babf97927 AIerlIz <shenrongsen@outlook.com> 1781539462 +0800	pull --rebase (finish): refs/heads/main onto c9b964e3ca5730414fe389468b2c6c4a7d42a18e
+5f7a0e3a0e332d01a098b01f2ed6722babf97927 0da7472c8262f51eca9a78732b849b2987144bfc AIerlIz <shenrongsen@outlook.com> 1781539828 +0800	commit: fix: 页面加载时预显示游戏库数量
+0da7472c8262f51eca9a78732b849b2987144bfc 22e42b0d7892afe097ae0be4049197dd1e255d8d AIerlIz <shenrongsen@outlook.com> 1781539839 +0800	pull --rebase (finish): refs/heads/main onto f6f8af6e93c64d0f81026ce70f90e561c05d2931
+22e42b0d7892afe097ae0be4049197dd1e255d8d d5e914bc5a04ba6db00337980d7ab48a7ee047b2 AIerlIz <shenrongsen@outlook.com> 1781540045 +0800	commit: feat: 过滤游玩时长不足总时长千分之一的游戏
+d5e914bc5a04ba6db00337980d7ab48a7ee047b2 f95507df342b1d0d6b91907f43e6aa99e2cf4294 AIerlIz <shenrongsen@outlook.com> 1781540336 +0800	commit: refactor: 在数据生成时过滤游玩时长不足总时长千分之一的游戏
+f95507df342b1d0d6b91907f43e6aa99e2cf4294 50f97b3980eb19710258f637bd9b6b4b7009733f AIerlIz <shenrongsen@outlook.com> 1781540584 +0800	commit: refactor: 移除页面顶部统计信息
+50f97b3980eb19710258f637bd9b6b4b7009733f 1903df567bad29ebbbf42d57241852086c35bebf AIerlIz <shenrongsen@outlook.com> 1781540585 +0800	pull --rebase (finish): refs/heads/main onto d7d6ee175235006e7c50e611d0f41b621a7a6fa9
+1903df567bad29ebbbf42d57241852086c35bebf 7cdb5d9bbc70cb9a129599b2ee3205c1ad2520c3 AIerlIz <shenrongsen@outlook.com> 1781540803 +0800	commit: fix: 优化tag过滤器布局，排序框不再独占一行
+7cdb5d9bbc70cb9a129599b2ee3205c1ad2520c3 30aac8b3918ec7bb4b51ed61e2586ba61fb26bc6 AIerlIz <shenrongsen@outlook.com> 1781540920 +0800	commit: fix: 缩小tag过滤器尺寸，更紧凑的展示
+30aac8b3918ec7bb4b51ed61e2586ba61fb26bc6 1903df567bad29ebbbf42d57241852086c35bebf AIerlIz <shenrongsen@outlook.com> 1781541020 +0800	reset: moving to HEAD~2
+1903df567bad29ebbbf42d57241852086c35bebf 20174267ba2e9f821f8d3361afed158ac43e44e7 AIerlIz <shenrongsen@outlook.com> 1781541146 +0800	commit: feat: 切换到游戏库时标题变为'甄选为你'
+20174267ba2e9f821f8d3361afed158ac43e44e7 5a68e2cd5304a4eb991e93c24b4d05575ae6c925 AIerlIz <shenrongsen@outlook.com> 1781541258 +0800	commit: feat: 标题切换时添加翻转动画
+5a68e2cd5304a4eb991e93c24b4d05575ae6c925 11cdf9efb5bc1a08f2c56c5aa5a21b9aa8bf89d5 AIerlIz <shenrongsen@outlook.com> 1781541368 +0800	commit: fix: 标题切换改为左右翻转动画
+11cdf9efb5bc1a08f2c56c5aa5a21b9aa8bf89d5 a60dde97bfe11f8eff040c8b702fca3052458774 AIerlIz <shenrongsen@outlook.com> 1781541978 +0800	commit: feat: 重新布局toolbar，标签维度标题+排序在上，tags在下
+a60dde97bfe11f8eff040c8b702fca3052458774 937be49112a84ceb2905c2a09bca3e669aca7d67 AIerlIz <shenrongsen@outlook.com> 1781542266 +0800	commit: feat: toolbar悬浮左侧+优化滚动条样式
+937be49112a84ceb2905c2a09bca3e669aca7d67 923b5c8b5ce25e7a3f3d196df7466f5fa40093a2 AIerlIz <shenrongsen@outlook.com> 1781542442 +0800	commit: feat: toolbar添加卡片边框样式并缩小宽度
+923b5c8b5ce25e7a3f3d196df7466f5fa40093a2 da7acf305aab2d6819353393f8c7bc8f98605697 AIerlIz <shenrongsen@outlook.com> 1781542596 +0800	commit: fix: toolbar左边距调整
+da7acf305aab2d6819353393f8c7bc8f98605697 f456085fef82474a9a19d9ca4993e4106cd94c20 AIerlIz <shenrongsen@outlook.com> 1781542756 +0800	commit: feat: toolbar改为absolute定位+tag按长度排序
+f456085fef82474a9a19d9ca4993e4106cd94c20 8aa4ebcacfce606a9918fe7c2be3069b26a3bae2 AIerlIz <shenrongsen@outlook.com> 1781543062 +0800	commit: fix: 修复3处JavaScript语法错误，补全forEach回调函数体
+8aa4ebcacfce606a9918fe7c2be3069b26a3bae2 da7acf305aab2d6819353393f8c7bc8f98605697 AIerlIz <shenrongsen@outlook.com> 1781543142 +0800	reset: moving to HEAD~2
+da7acf305aab2d6819353393f8c7bc8f98605697 29501f69a0b581cec0010551167b9919f846d458 AIerlIz <shenrongsen@outlook.com> 1781543184 +0800	reset: moving to 29501f69a0b581cec0010551167b9919f846d458
+29501f69a0b581cec0010551167b9919f846d458 0aaf161cb14a2157c98536d1a8ee5e52060f194f AIerlIz <shenrongsen@outlook.com> 1781543196 +0800	commit: feat: Steam游戏库展示与推荐系统完善
+0aaf161cb14a2157c98536d1a8ee5e52060f194f 570799e4e06d529901a45b40604d9ae1f4cd9b62 AIerlIz <shenrongsen@outlook.com> 1781543319 +0800	commit: feat: tag按长度从短到长排序
+570799e4e06d529901a45b40604d9ae1f4cd9b62 935811cc8785340dd970f6e35e274d153c971767 AIerlIz <shenrongsen@outlook.com> 1781543330 +0800	pull --rebase (finish): refs/heads/main onto a637e09f761be3e53b643ef87d5328062a7089e5
+935811cc8785340dd970f6e35e274d153c971767 a5590af82f3ad87abb5de2e0892cc09b22adf1b1 AIerlIz <shenrongsen@outlook.com> 1781543681 +0800	commit: feat: toolbar动态定位到屏幕左边缘与games-grid中间
+a5590af82f3ad87abb5de2e0892cc09b22adf1b1 f5c27a4306c59c54e3ca6b0892e199c21e442ea9 AIerlIz <shenrongsen@outlook.com> 1781544003 +0800	commit: feat: 过滤游戏库中的软件/视频等非游戏类型
+f5c27a4306c59c54e3ca6b0892e199c21e442ea9 6870959499964c78696356da6e4b0460dfc486be AIerlIz <shenrongsen@outlook.com> 1781544086 +0800	commit: fix: 只保留game类型，过滤DLC等
+6870959499964c78696356da6e4b0460dfc486be 8ba41c94e7c7b8b2c6205c040ef6a1963235368a AIerlIz <shenrongsen@outlook.com> 1781544088 +0800	pull --rebase (finish): refs/heads/main onto a02b8249176de878f917ea29cb91402ed1c0626b
+8ba41c94e7c7b8b2c6205c040ef6a1963235368a b8dda17be76fc729092b10ef6da24f7899388f56 AIerlIz <shenrongsen@outlook.com> 1781544365 +0800	commit: fix: 添加重试机制+降低并发数，修复Steam API限流问题
+b8dda17be76fc729092b10ef6da24f7899388f56 2a248dd115e13d81e777ba1cbfaf123ffae2cf09 AIerlIz <shenrongsen@outlook.com> 1781570630 +0800	commit: feat: 对缺失详情的游戏单独重试5次
+2a248dd115e13d81e777ba1cbfaf123ffae2cf09 53435ed199e7c24f8fd9edeacaae55e0a05a0115 AIerlIz <shenrongsen@outlook.com> 1781570632 +0800	pull --rebase (finish): refs/heads/main onto 288ceeb00a0b8d95b68ed5905a9e0ae9c14fca54
+53435ed199e7c24f8fd9edeacaae55e0a05a0115 8ba41c94e7c7b8b2c6205c040ef6a1963235368a AIerlIz <shenrongsen@outlook.com> 1781570705 +0800	reset: moving to 8ba41c94e7c7b8b2c6205c040ef6a1963235368a
+8ba41c94e7c7b8b2c6205c040ef6a1963235368a 21cb710fa78f34a7eb5f5303938d3c4222e446f9 AIerlIz <shenrongsen@outlook.com> 1781575319 +0800	commit: fix: 前端分页懒加载、合并Steam API请求、修复窄屏溢出、提取公共函数
+21cb710fa78f34a7eb5f5303938d3c4222e446f9 1bb516265a66fce84be4f48fdb386936a833545d AIerlIz <shenrongsen@outlook.com> 1781577403 +0800	commit: refactor: 提取 Steam API 公共函数到 common.py，消除脚本间重复代码
+1bb516265a66fce84be4f48fdb386936a833545d 0843535d67f07d433f74a9e02336c1b6209ff7c6 AIerlIz <shenrongsen@outlook.com> 1781577431 +0800	pull --rebase (finish): refs/heads/main onto 3f5957893f60fd142958016309c521fdc99c8839
+0843535d67f07d433f74a9e02336c1b6209ff7c6 9adb5e5aea1174eb2898b567ac1df46ffd70dc38 AIerlIz <shenrongsen@outlook.com> 1781578179 +0800	pull --tags origin main: Fast-forward
+9adb5e5aea1174eb2898b567ac1df46ffd70dc38 d7bec87037b6b252a19d259e16cfda2ca7e8414d AIerlIz <shenrongsen@outlook.com> 1781578209 +0800	commit: fix: workflow push 并发冲突时重试 pull rebase 和 push
+d7bec87037b6b252a19d259e16cfda2ca7e8414d 1f41d17c63373c4d881b149ad9540de3c5752a61 AIerlIz <shenrongsen@outlook.com> 1781578389 +0800	pull --tags origin main: Fast-forward
+1f41d17c63373c4d881b149ad9540de3c5752a61 fcbe1b2d1374be386276afa3d30ad3f0394feaba AIerlIz <shenrongsen@outlook.com> 1781578614 +0800	commit: fix: 降低 Steam API 并发数(8→2)并增加重试机制，减少限流导致的详情缺失
+fcbe1b2d1374be386276afa3d30ad3f0394feaba 50cbce461d1e50d0b6cde62b6ed3423ba5abe485 AIerlIz <shenrongsen@outlook.com> 1781578793 +0800	commit: fix: 移除评测数据的 200 款数量限制，获取全部游戏评测
+50cbce461d1e50d0b6cde62b6ed3423ba5abe485 e6c331e702f572d34f0e3b3bcf4d788d0bde1c1f AIerlIz <shenrongsen@outlook.com> 1781578798 +0800	pull --rebase (finish): refs/heads/main onto eadf9c1ecd1901d87d6d97286d9f93c87c394dd6
+e6c331e702f572d34f0e3b3bcf4d788d0bde1c1f 995ffc366cabbbadd5432ab62f5d2b8386d53ce2 AIerlIz <shenrongsen@outlook.com> 1781579450 +0800	commit: fix: 卡片标签显示不再截断前3个，展示全部genre标签
+995ffc366cabbbadd5432ab62f5d2b8386d53ce2 103579a5f61d11a98cf309235c1449a522aae992 AIerlIz <shenrongsen@outlook.com> 1781579666 +0800	commit: fix: 每行卡片以最高卡片为基准等高对齐
+103579a5f61d11a98cf309235c1449a522aae992 d06c245073938f2b62fd8b6b4c4767bc5436941d AIerlIz <shenrongsen@outlook.com> 1781579880 +0800	commit: fix: game-tags flex:1撑开，上(name)靠上、下(stats/actions)靠下
+d06c245073938f2b62fd8b6b4c4767bc5436941d 2d744c434a43006f122151d5d64a6e859a0159c5 AIerlIz <shenrongsen@outlook.com> 1781580081 +0800	commit: feat: 推荐理由/游戏简介改为封面悬停向上弹出覆盖
+2d744c434a43006f122151d5d64a6e859a0159c5 6073ce30138b11dc05dbd92af80eb9ff9094336a AIerlIz <shenrongsen@outlook.com> 1781580157 +0800	commit: refactor: 合并renderCard和renderLibraryCard为一个模板
+6073ce30138b11dc05dbd92af80eb9ff9094336a 4a53f6a8a1afd96fb41bd075a44e4c03758e8cdf AIerlIz <shenrongsen@outlook.com> 1781580375 +0800	commit: feat: 悬停游戏简介时滚轮翻页，overlay移除pointer-events:none
+4a53f6a8a1afd96fb41bd075a44e4c03758e8cdf 7945dfb121755450b6c36565c78f8e80cb6a4b16 AIerlIz <shenrongsen@outlook.com> 1781581692 +0800	commit: fix: 代码审查问题修复 - 并发/分页/滚轮/样式/冗余代码
+7945dfb121755450b6c36565c78f8e80cb6a4b16 202b3e48fa6fb0ea30426dcaf28d51da0b290c4c AIerlIz <shenrongsen@outlook.com> 1781582258 +0800	commit: refactor: 前后端代码解耦合，提取公共函数
+202b3e48fa6fb0ea30426dcaf28d51da0b290c4c d7927e2cabb6c6587835e1457cbf6e2d3e1bd7ce AIerlIz <shenrongsen@outlook.com> 1781582482 +0800	pull --tags origin main: Fast-forward
+d7927e2cabb6c6587835e1457cbf6e2d3e1bd7ce 9d6dd8c7cb17113b6ac160daac598fbde15db693 AIerlIz <shenrongsen@outlook.com> 1781582969 +0800	reset: moving to 9d6dd8c7cb17113b6ac160daac598fbde15db693
+9d6dd8c7cb17113b6ac160daac598fbde15db693 774e40970b8369694fc842237c2b1575be08bdf3 AIerlIz <shenrongsen@outlook.com> 1781582974 +0800	commit: DeepSteam: AI游戏推荐 + 游戏库管理系统
+774e40970b8369694fc842237c2b1575be08bdf3 4785480a3694b34a4a986c483e8bccadecb2a03e AIerlIz <shenrongsen@outlook.com> 1781583034 +0800	commit: fix: 促销标签排序紧随全部按钮之后
+4785480a3694b34a4a986c483e8bccadecb2a03e 9adf946de37706a714a4a012d922e5ecfd84e5df AIerlIz <shenrongsen@outlook.com> 1781583041 +0800	pull --rebase (finish): refs/heads/main onto b32cfe1f6d2a9e90def33358140e401422f951e6
+9adf946de37706a714a4a012d922e5ecfd84e5df 046fdb90efd6d6eafcca15670da5e90bdf851acb AIerlIz <shenrongsen@outlook.com> 1781589319 +0800	commit: feat: 右侧隐藏式toolbar + Tab吸顶 + 回到顶部按钮
+046fdb90efd6d6eafcca15670da5e90bdf851acb 496fdd7038550810f8187d0e80ea71c6c434815c AIerlIz <shenrongsen@outlook.com> 1781589326 +0800	pull --rebase (finish): refs/heads/main onto 2d6a6fa14304d2671fcbac89854f781ad11566d6
+496fdd7038550810f8187d0e80ea71c6c434815c bb05bb72ea7cc57d2899f579a244d3992992cd2d AIerlIz <shenrongsen@outlook.com> 1781589548 +0800	commit: fix: toolbar抓手靠右边缘 + 回到顶部初始可见性检查
+bb05bb72ea7cc57d2899f579a244d3992992cd2d 94ed36a590dddfad43bfd79a3cd1116b44e9d4be AIerlIz <shenrongsen@outlook.com> 1781589698 +0800	commit: fix: back-to-top 元素移至 script 之前确保 JS 能获取到
+94ed36a590dddfad43bfd79a3cd1116b44e9d4be 40a4a06eb346319935c5335c2bf114c4bb7016c2 AIerlIz <shenrongsen@outlook.com> 1781590045 +0800	commit: fix: btt-text max-width:0 防止撑开容器挤走箭头
+40a4a06eb346319935c5335c2bf114c4bb7016c2 95a65ecf1d72d829f19926a639b16d8223656d9d AIerlIz <shenrongsen@outlook.com> 1781590143 +0800	commit: style: 回到顶部箭头改为SVG图标
+95a65ecf1d72d829f19926a639b16d8223656d9d d2292fdd3b89dc2cb3ecae39838b01fd6a75a069 AIerlIz <shenrongsen@outlook.com> 1781590410 +0800	commit: feat: 鼠标移近屏幕右边缘时弹出toolbar
+d2292fdd3b89dc2cb3ecae39838b01fd6a75a069 2d7a5cd6a7a42132d6a010e6ec6da4abc104cbf9 AIerlIz <shenrongsen@outlook.com> 1781590598 +0800	commit: feat: 移除抓手，鼠标移近屏幕右边缘时在鼠标位置弹出toolbar
+2d7a5cd6a7a42132d6a010e6ec6da4abc104cbf9 8aba63af3dc3f6b10b6a10365c928fff0d21c553 AIerlIz <shenrongsen@outlook.com> 1781590777 +0800	commit: feat: toolbar左右边缘均可弹出，左侧弹出时交换排序/标签顺序
+8aba63af3dc3f6b10b6a10365c928fff0d21c553 c2eb9aa0566c68a16d4b44fd33cff46699779465 AIerlIz <shenrongsen@outlook.com> 1781590914 +0800	commit: fix: 强制reflow恢复toolbar弹出动画
+c2eb9aa0566c68a16d4b44fd33cff46699779465 88cbc1edd6e9a99a78ed14e9256c7ba7f1f8e07e AIerlIz <shenrongsen@outlook.com> 1781590998 +0800	commit: feat: 回到顶部水平居中常驻显示
+88cbc1edd6e9a99a78ed14e9256c7ba7f1f8e07e 6233d8f70b577c957e0aceeb936b4a6653d62eb5 AIerlIz <shenrongsen@outlook.com> 1781591103 +0800	commit: fix: 回到顶部恢复隐藏+弹出，保持居中
+6233d8f70b577c957e0aceeb936b4a6653d62eb5 774e40970b8369694fc842237c2b1575be08bdf3 AIerlIz <shenrongsen@outlook.com> 1781591156 +0800	reset: moving to 774e40970b8369694fc842237c2b1575be08bdf3
+774e40970b8369694fc842237c2b1575be08bdf3 af8621b50f92397d54f71c77e11eb3f717c85f09 AIerlIz <shenrongsen@outlook.com> 1781591156 +0800	commit: refactor: 前端代码解耦合+后端batch_fetch+toolbar重构+回到顶部优化
+af8621b50f92397d54f71c77e11eb3f717c85f09 d678ad2563f6b9e372c26e51fb269fe2d9779f0d AIerlIz <shenrongsen@outlook.com> 1781591314 +0800	commit: fix: toolbar垂直居中，弹出后1秒无悬停自动隐藏
+d678ad2563f6b9e372c26e51fb269fe2d9779f0d 370bec3a752d4f8471a53dc640f7a52c3b56b0f3 AIerlIz <shenrongsen@outlook.com> 1781591525 +0800	commit: fix: toolbar垂直居中改用flex布局避免transform冲突
+370bec3a752d4f8471a53dc640f7a52c3b56b0f3 0281bf30ddd334da164f058d22ff6a1d95356e41 AIerlIz <shenrongsen@outlook.com> 1781591983 +0800	commit: fix: 切换toolbar侧边时临时禁用过渡防止动画方向错误
+0281bf30ddd334da164f058d22ff6a1d95356e41 30ca2829a384565cac33b74bc69cfe74d4272d5c AIerlIz <shenrongsen@outlook.com> 1781592169 +0800	commit: fix: 切换toolbar侧边时先瞬切隐藏状态再动画弹出
+30ca2829a384565cac33b74bc69cfe74d4272d5c 9d6dd8c7cb17113b6ac160daac598fbde15db693 AIerlIz <shenrongsen@outlook.com> 1781592306 +0800	reset: moving to 9d6dd8c
+9d6dd8c7cb17113b6ac160daac598fbde15db693 8846ba5b89784f01210dd9d5ae6fdab5417dbd59 AIerlIz <shenrongsen@outlook.com> 1781592306 +0800	commit: DeepSteam: AI游戏推荐 + 游戏库管理系统
+8846ba5b89784f01210dd9d5ae6fdab5417dbd59 9d6dd8c7cb17113b6ac160daac598fbde15db693 AIerlIz <shenrongsen@outlook.com> 1781592348 +0800	reset: moving to 9d6dd8c7cb17113b6ac160daac598fbde15db693
+9d6dd8c7cb17113b6ac160daac598fbde15db693 112a385b5407ee5364aae07b4f787db010b6c0d6 AIerlIz <shenrongsen@outlook.com> 1781592348 +0800	commit (amend): DeepSteam: AI游戏推荐 + 游戏库管理系统
+112a385b5407ee5364aae07b4f787db010b6c0d6 0bc6a2b81a71f888ca7af56bba5c31b57ff2fb9d AIerlIz <shenrongsen@outlook.com> 1781592368 +0800	reset: moving to 0bc6a2b
+0bc6a2b81a71f888ca7af56bba5c31b57ff2fb9d 9d6dd8c7cb17113b6ac160daac598fbde15db693 AIerlIz <shenrongsen@outlook.com> 1781592368 +0800	reset: moving to 9d6dd8c7cb17113b6ac160daac598fbde15db693
+9d6dd8c7cb17113b6ac160daac598fbde15db693 b1cb097176acc3e295c7bf937ec670d4f5d10505 AIerlIz <shenrongsen@outlook.com> 1781592368 +0800	commit (amend): DeepSteam: AI游戏推荐 + 游戏库管理系统
+b1cb097176acc3e295c7bf937ec670d4f5d10505 f9f3fa8bcf43fd708eaaabe3106530c254525ba3 AIerlIz <shenrongsen@outlook.com> 1781592457 +0800	commit: fix: library.json变更触发Pages重新部署
+f9f3fa8bcf43fd708eaaabe3106530c254525ba3 3da2f03fa1135817a327096bcfb707cbf32a2d77 AIerlIz <shenrongsen@outlook.com> 1781592591 +0800	commit: feat: CI生成数据后直接部署Pages，不再提交到仓库
+3da2f03fa1135817a327096bcfb707cbf32a2d77 737866f55189d358ed0a4a4b4449e3ebef51fa13 AIerlIz <shenrongsen@outlook.com> 1781592597 +0800	pull --rebase (finish): refs/heads/main onto e4aeb05218093ac577807d1fdab458afac69733a
+737866f55189d358ed0a4a4b4449e3ebef51fa13 4c3c2c595216e361730afe6b9356a51a3b7af771 AIerlIz <shenrongsen@outlook.com> 1781593208 +0800	commit: feat: 数据源由CI直接部署，不再提交到仓库
+4c3c2c595216e361730afe6b9356a51a3b7af771 a700476455f5892c3733436c0ca9623425ec5d5f AIerlIz <shenrongsen@outlook.com> 1781593420 +0800	commit: feat: 统一加载失败UI，加入重试按钮
+a700476455f5892c3733436c0ca9623425ec5d5f ba199a05ae53df0503bea7c262d50d66806c9361 AIerlIz <shenrongsen@outlook.com> 1781594816 +0800	commit: feat: Telegram Bot 实现 /recommend + /search 命令
+ba199a05ae53df0503bea7c262d50d66806c9361 ba89bcb5709589e828ad64018edf8c4c152bcad5 AIerlIz <shenrongsen@outlook.com> 1781594910 +0800	commit: fix: 代码审查问题修复 - 去重/DRY/未使用import
+ba89bcb5709589e828ad64018edf8c4c152bcad5 f5a8055c7d393f8ef1cf8b5ac76b4351a564effd AIerlIz <shenrongsen@outlook.com> 1781601454 +0800	revert: Revert "fix: 代码审查问题修复 - 去重/DRY/未使用import"
+f5a8055c7d393f8ef1cf8b5ac76b4351a564effd e0338371491d0bf39b8953f6b8303f28d85d1ea1 AIerlIz <shenrongsen@outlook.com> 1781601454 +0800	revert: Revert "feat: Telegram Bot 实现 /recommend + /search 命令"
+e0338371491d0bf39b8953f6b8303f28d85d1ea1 b1cb097176acc3e295c7bf937ec670d4f5d10505 AIerlIz <shenrongsen@outlook.com> 1781601595 +0800	reset: moving to b1cb097
+b1cb097176acc3e295c7bf937ec670d4f5d10505 345f97ebe58e98a672ba991922e85a07c6c23deb AIerlIz <shenrongsen@outlook.com> 1781601598 +0800	commit: DeepSteam: AI游戏推荐 + 游戏库管理系统
+345f97ebe58e98a672ba991922e85a07c6c23deb b1cb097176acc3e295c7bf937ec670d4f5d10505 AIerlIz <shenrongsen@outlook.com> 1781601615 +0800	reset: moving to b1cb097
+b1cb097176acc3e295c7bf937ec670d4f5d10505 80c23a7277476549b28084c3e68d8d49714a0181 AIerlIz <shenrongsen@outlook.com> 1781601615 +0800	commit (amend): DeepSteam: AI游戏推荐 + 游戏库管理系统
+80c23a7277476549b28084c3e68d8d49714a0181 6dfdc26eabcfe5a55ffdc8e8f6efb3c62a16fc41 AIerlIz <shenrongsen@outlook.com> 1781601676 +0800	commit (amend): DeepSteam: AI游戏推荐 + 游戏库管理系统
+6dfdc26eabcfe5a55ffdc8e8f6efb3c62a16fc41 9734cf038ce8cda87523a476e588c33f22988340 AIerlIz <shenrongsen@outlook.com> 1781601846 +0800	commit (amend): DeepSteam: AI游戏推荐 + 游戏库管理系统
+9734cf038ce8cda87523a476e588c33f22988340 fe3b7738dd6c8c4523e039c6649ee21e1e50511b AIerlIz <shenrongsen@outlook.com> 1781602812 +0800	commit (amend): DeepSteam: AI游戏推荐 + 游戏库管理系统
+fe3b7738dd6c8c4523e039c6649ee21e1e50511b c68b267fa2e376288d238b63690998a8a8f70c43 AIerlIz <shenrongsen@outlook.com> 1781603124 +0800	commit: fix: 使用英文名比对避免误矫正正确的appid
+c68b267fa2e376288d238b63690998a8a8f70c43 a5f2cea1add57bd770e8fab42acc5fb287c4fe8e AIerlIz <shenrongsen@outlook.com> 1781603554 +0800	commit: fix: 分离recGamesAll全量列表，筛选取全部时从全量恢复
+a5f2cea1add57bd770e8fab42acc5fb287c4fe8e c690ed3b44215ca34db9d40a81ea975482c767a5 AIerlIz <shenrongsen@outlook.com> 1781604096 +0800	commit: fix: 两个工作流互相保留对方的数据文件
+c690ed3b44215ca34db9d40a81ea975482c767a5 bf089222501e972937dcf5385c575489fb5fb7a8 AIerlIz <shenrongsen@outlook.com> 1781604337 +0800	commit: chore: 游戏库改为每周刷新
+bf089222501e972937dcf5385c575489fb5fb7a8 d2c6c3e56a5201211ac81b049aef0cdebeef276b AIerlIz <shenrongsen@outlook.com> 1781604434 +0800	commit: feat: 重新设计加载失败/空状态UI
+d2c6c3e56a5201211ac81b049aef0cdebeef276b ff9194fa2f61333e9db2afad0d03a3b4746c2bdc AIerlIz <shenrongsen@outlook.com> 1781604674 +0800	commit: fix: 游戏库补全时获取并保存英文名
+ff9194fa2f61333e9db2afad0d03a3b4746c2bdc f6598b795ce876c00a518aa78f450f7defbd1967 AIerlIz <shenrongsen@outlook.com> 1781604857 +0800	commit: fix: deploy-pages 也保留数据文件
+f6598b795ce876c00a518aa78f450f7defbd1967 e453a5de7b1b2f2db8a58bb3939afe1c2d3f08f9 AIerlIz <shenrongsen@outlook.com> 1781604975 +0800	commit: fix: translated_app_names缺失时回退调用english接口获取真英文名
+e453a5de7b1b2f2db8a58bb3939afe1c2d3f08f9 d49b456aec1c4e58bcd70cf48bddab40a71718f3 AIerlIz <shenrongsen@outlook.com> 1781605910 +0800	commit: feat: 三个工作流手动触发都支持purge清空数据
+d49b456aec1c4e58bcd70cf48bddab40a71718f3 18336f556cd9f51863607f5adc6c69b43122af94 AIerlIz <shenrongsen@outlook.com> 1781606332 +0800	commit: fix: toolbar-wrap加pointer-events:none，隐藏时不再遮挡游戏卡片
+18336f556cd9f51863607f5adc6c69b43122af94 bb4a9a058d4fa55706650fe6845a90d4fd03c2ba AIerlIz <shenrongsen@outlook.com> 1781606934 +0800	commit: refactor: 抽取composite action、前端修复:has兼容性+事件委托、Python规范化
+bb4a9a058d4fa55706650fe6845a90d4fd03c2ba dcbee5d23c7f5a0a78eddcca8d2e0f8d0404ac04 AIerlIz <shenrongsen@outlook.com> 1781607261 +0800	commit: feat: 点击复制时通过appid查询Steam获取真英文名
+dcbee5d23c7f5a0a78eddcca8d2e0f8d0404ac04 e3e805b8c0513c6c21dd8f9a297e0d636198172a AIerlIz <shenrongsen@outlook.com> 1781607872 +0800	commit: refactor: 移除include_appnames数据源逻辑，验证改用storesearch反查appid
+e3e805b8c0513c6c21dd8f9a297e0d636198172a ab14bad83446d9a9c623fa54f41ccfce3406e8ee AIerlIz <shenrongsen@outlook.com> 1781608482 +0800	commit: refactor: steam_search_by_name返回完整信息省去二次确认，排序选项改为事件委托
+ab14bad83446d9a9c623fa54f41ccfce3406e8ee 5dd9f01b6e3afb90cb408257d2d18de17409181d AIerlIz <shenrongsen@outlook.com> 1781609284 +0800	commit: fix: 前端CORS无法直调Steam API，回退到data-copy复制（接受中文名）
+5dd9f01b6e3afb90cb408257d2d18de17409181d df27e9c32d8dbbcc24dfe96374ee34eb8ec8f977 AIerlIz <shenrongsen@outlook.com> 1781657167 +0800	commit: feat: 使用CF Proxy代理Steam API查询英文名（解决CORS）
+df27e9c32d8dbbcc24dfe96374ee34eb8ec8f977 2e4510e01038d2d408f00b200c64421218d025e7 AIerlIz <shenrongsen@outlook.com> 1781657304 +0800	commit: fix: 更换proxy域名，移除查询中提示
+2e4510e01038d2d408f00b200c64421218d025e7 614b8755963baf67339531758d14413cefc25ab6 AIerlIz <shenrongsen@outlook.com> 1781657463 +0800	commit: refactor: PROXY_BASE参数化，通过GitHub Variables注入
+614b8755963baf67339531758d14413cefc25ab6 649eb071cb9b4a38a52df8754e83e170eb97bccf AIerlIz <shenrongsen@outlook.com> 1781657636 +0800	commit: refactor: PROXY_BASE 改用 secrets 注入
+649eb071cb9b4a38a52df8754e83e170eb97bccf 563ea0e40325eebf5dd604b7a1891c129ab7173c AIerlIz <shenrongsen@outlook.com> 1781657714 +0800	commit: docs: 添加CORS代理部署说明
+563ea0e40325eebf5dd604b7a1891c129ab7173c fe3b7738dd6c8c4523e039c6649ee21e1e50511b AIerlIz <shenrongsen@outlook.com> 1781657758 +0800	reset: moving to fe3b773
+fe3b7738dd6c8c4523e039c6649ee21e1e50511b 3b6f702395cc3c0328274023bd5f5b38c90458df AIerlIz <shenrongsen@outlook.com> 1781657758 +0800	commit (amend): DeepSteam: AI游戏推荐 + 游戏库管理系统
+3b6f702395cc3c0328274023bd5f5b38c90458df 3a83ea5022c41185316ca8a5264ab9ca8e69688d AIerlIz <shenrongsen@outlook.com> 1781657796 +0800	commit (amend): DeepSteam: AI游戏推荐 + 游戏库管理系统
+3a83ea5022c41185316ca8a5264ab9ca8e69688d dd41d6a5683f912ea7c84ecb33ac910233393913 AIerlIz <shenrongsen@outlook.com> 1781658650 +0800	commit: chore: 清理 english_name、合并 PROXY_BASE 注入到 download-data、Tab 事件委托
+dd41d6a5683f912ea7c84ecb33ac910233393913 3ed61279f6f12f423c2073a229dc621c6800385a AIerlIz <shenrongsen@outlook.com> 1781659295 +0800	commit: chore: bump version to v1.7.2
+3ed61279f6f12f423c2073a229dc621c6800385a 0425763dcbba8e83602b20ea33cae67761a4713e AIerlIz <shenrongsen@outlook.com> 1781659379 +0800	commit: chore: bump version to v1.7.3
+0425763dcbba8e83602b20ea33cae67761a4713e 35a411d3a815ee1d509a133e6ad722a46537ed64 AIerlIz <shenrongsen@outlook.com> 1781659452 +0800	commit: chore: bump version to v1.7.4
+35a411d3a815ee1d509a133e6ad722a46537ed64 6ffe4d1fc8f0c7f34fc47a9373a4d3c036199c27 AIerlIz <shenrongsen@outlook.com> 1781659710 +0800	commit: feat: 推荐游戏时过滤 DLC
+6ffe4d1fc8f0c7f34fc47a9373a4d3c036199c27 3e77c04bc03f2d6ba5b91a28e37d58c560d823f4 AIerlIz <shenrongsen@outlook.com> 1781659872 +0800	commit: refactor: 在 appid 验证步骤过滤 DLC
+3e77c04bc03f2d6ba5b91a28e37d58c560d823f4 ec079919a9116b72d02984a4e4e3be2fff703b0f AIerlIz <shenrongsen@outlook.com> 1781659983 +0800	commit: chore: 移除前端 DLC 过滤（已在后端 appid 验证处处理）
+ec079919a9116b72d02984a4e4e3be2fff703b0f 3a4f7fdba4c392fb740473d8c321493d7293fb08 AIerlIz <shenrongsen@outlook.com> 1781661461 +0800	commit: feat: 评分改用贝叶斯平均算法（平滑因子 C=100，先验 p=0.8）
+3a4f7fdba4c392fb740473d8c321493d7293fb08 74e8777de5ffaf467dc5051c1aaae50e1bc8eb5d AIerlIz <shenrongsen@outlook.com> 1781661673 +0800	commit: feat: 贝叶斯平均的 prior 改为从已加载数据动态计算
+74e8777de5ffaf467dc5051c1aaae50e1bc8eb5d f0e49ca8c440cec2c17d68b26e1340dae42bf703 AIerlIz <shenrongsen@outlook.com> 1781661789 +0800	commit: chore: 贝叶斯平滑因子 C 改为 200
+f0e49ca8c440cec2c17d68b26e1340dae42bf703 ec829d998bc764f06c2698ff0021ecf74273a71b AIerlIz <shenrongsen@outlook.com> 1781663841 +0800	commit: fix: toolbar 弹出增加 300ms 延迟，避免边缘误触
+ec829d998bc764f06c2698ff0021ecf74273a71b 89a5ca5b8085ccea5e71b990abc7d54a96140d4f AIerlIz <shenrongsen@outlook.com> 1781663950 +0800	commit: chore: show 延迟 200ms, hide 延迟 500ms
+89a5ca5b8085ccea5e71b990abc7d54a96140d4f 12679a898d0da8332821efcc739ae29107f6ed4f AIerlIz <shenrongsen@outlook.com> 1781665239 +0800	commit: chore: 项目更名为 识游 · GameSeeker
+12679a898d0da8332821efcc739ae29107f6ed4f ff16b0bf98ae49b1735a1374ce5395b7e390e1bb AIerlIz <shenrongsen@outlook.com> 1781665608 +0800	commit: feat: 添加 GameSeeker 罗盘手柄 Logo（favicon + README）
+ff16b0bf98ae49b1735a1374ce5395b7e390e1bb 67536cd223c7f932826d4ad7e1796e481ea2afc5 AIerlIz <shenrongsen@outlook.com> 1781665725 +0800	commit: chore: 项目描述改为「AI 驱动的 Steam 游戏探索工具」
+67536cd223c7f932826d4ad7e1796e481ea2afc5 4604ace8a3072fe71a2c2dfad84b83f2ced36bdf AIerlIz <shenrongsen@outlook.com> 1781665926 +0800	commit: feat: SEO 优化 - OG 标签、JSON-LD 结构化数据、sitemap、robots.txt
+4604ace8a3072fe71a2c2dfad84b83f2ced36bdf 4cd7ccdd5394ed2f19351cd39a4e702fa405f9b4 AIerlIz <shenrongsen@outlook.com> 1781666040 +0800	commit: feat: 支持 Atom RSS feed（自动从游戏数据生成）
+4cd7ccdd5394ed2f19351cd39a4e702fa405f9b4 a2190bfe2cf2dfafa6bb93989092e4683e36e41a AIerlIz <shenrongsen@outlook.com> 1781666318 +0800	commit: feat: 支持 PWA（manifest + Service Worker + 离线缓存）
+a2190bfe2cf2dfafa6bb93989092e4683e36e41a 22f5c70b8990958c091c9a3edda09fe9f5a6f264 AIerlIz <shenrongsen@outlook.com> 1781666724 +0800	commit: chore: 标题左侧添加 GameSeeker logo
+22f5c70b8990958c091c9a3edda09fe9f5a6f264 aa91295b4f4eb486cf87c660ee6177419a8f6a69 AIerlIz <shenrongsen@outlook.com> 1781666793 +0800	commit: chore: PWA 名称使用中文（short_name: 识游）
+aa91295b4f4eb486cf87c660ee6177419a8f6a69 43a287ab45b5d464eaaf07da40c3641c40d968df AIerlIz <shenrongsen@outlook.com> 1781666834 +0800	revert: Revert "chore: 标题左侧添加 GameSeeker logo"
+43a287ab45b5d464eaaf07da40c3641c40d968df e0127625b78d1ec9428eb67c3eb8eab3cb12d1b1 AIerlIz <shenrongsen@outlook.com> 1781680611 +0800	revert: Reapply "chore: 标题左侧添加 GameSeeker logo"
+e0127625b78d1ec9428eb67c3eb8eab3cb12d1b1 e23a2f4344f4aec182506cda7fbdb3c0f79a5e2c AIerlIz <shenrongsen@outlook.com> 1781680611 +0800	revert: Revert "chore: PWA 名称使用中文（short_name: 识游）"
+e23a2f4344f4aec182506cda7fbdb3c0f79a5e2c bf087c8cff0128c5d94457d1c2fa15c1c5122a2f AIerlIz <shenrongsen@outlook.com> 1781680611 +0800	revert: Revert "chore: 标题左侧添加 GameSeeker logo"
+bf087c8cff0128c5d94457d1c2fa15c1c5122a2f 970f122a5407bd2a98916f42346df1f00a694613 AIerlIz <shenrongsen@outlook.com> 1781680611 +0800	revert: Revert "feat: 支持 PWA（manifest + Service Worker + 离线缓存）"
+970f122a5407bd2a98916f42346df1f00a694613 881a4249a543b210ae01ec9d56ef5b04aac1450f AIerlIz <shenrongsen@outlook.com> 1781680611 +0800	revert: Revert "feat: 支持 Atom RSS feed（自动从游戏数据生成）"
+881a4249a543b210ae01ec9d56ef5b04aac1450f 20a71645ef4bb070513f5876f1faefb1992e8254 AIerlIz <shenrongsen@outlook.com> 1781680626 +0800	revert: Revert "feat: SEO 优化 - OG 标签、JSON-LD 结构化数据、sitemap、robots.txt"
+20a71645ef4bb070513f5876f1faefb1992e8254 7d34fa0c3228abdda813d5b49d8ba7c98c2f9534 AIerlIz <shenrongsen@outlook.com> 1781750173 +0800	commit: feat: Steam 跳转改为 byrutgame 英文名搜索
+7d34fa0c3228abdda813d5b49d8ba7c98c2f9534 107f9ca366bf2ebc3afe9b52258c7dce2f23ad87 AIerlIz <shenrongsen@outlook.com> 1781750338 +0800	commit: feat: 卡片按钮恢复 Steam 跳转（左侧）+ byrutgame（右侧）
+107f9ca366bf2ebc3afe9b52258c7dce2f23ad87 f0e152349ad07903cee19d4cd7d3c201e2684148 AIerlIz <shenrongsen@outlook.com> 1781750497 +0800	commit: chore: 缩短 Steam 按钮文字
+f0e152349ad07903cee19d4cd7d3c201e2684148 93716c4ca2d519f66d5f372498ee62badfbdc5ca AIerlIz <shenrongsen@outlook.com> 1781750688 +0800	commit: fix: 代码审查问题修复 — popup 拦截、缓存共享、并发控制
+93716c4ca2d519f66d5f372498ee62badfbdc5ca c9ce02544ae123bb959cd8db14d22817fcaa1b8a AIerlIz <shenrongsen@outlook.com> 1782098791 +0800	commit: feat: 推荐按推荐时间默认排序，1天内新推荐显示 New 角标
+c9ce02544ae123bb959cd8db14d22817fcaa1b8a bd586747e130b46567692d436cce7ce408cb817d AIerlIz <shenrongsen@outlook.com> 1782267953 +0800	revert: Revert "feat: 推荐按推荐时间默认排序，1天内新推荐显示 New 角标"
+bd586747e130b46567692d436cce7ce408cb817d c102f6b840a764fbc1dc701501dd787ce7b07c9e GameSeeker <bot@game-seeker.dev> 1782273924 +0800	commit: feat: 迁移到 Cloudflare Worker + TypeScript（替代 GitHub Pages + Python）
+c102f6b840a764fbc1dc701501dd787ce7b07c9e 81275030cf558bc88b7081e51a010b4b5078bafe GameSeeker <bot@game-seeker.dev> 1782274825 +0800	commit: feat: 添加管理后台页面 + KV 运行时配置覆盖层
+81275030cf558bc88b7081e51a010b4b5078bafe 781ea697201c2b8b1e801dfbb6303699882117aa GameSeeker <bot@game-seeker.dev> 1782281360 +0800	commit: refactor: 清空旧仓库，项目提到根目录重构
+781ea697201c2b8b1e801dfbb6303699882117aa 15443d545c48c25dffb46bdd2fe48fe696c90581 GameSeeker <bot@game-seeker.dev> 1782281512 +0800	pull --tags origin main: Fast-forward
+15443d545c48c25dffb46bdd2fe48fe696c90581 6334a2e46d88c1c3291e147295a611df393a7e43 GameSeeker <bot@game-seeker.dev> 1782282818 +0800	commit: chore: KV 绑定改为 Dashboard 手动配置（对标 edgetunnel 模式）
+6334a2e46d88c1c3291e147295a611df393a7e43 d0c1661150c1c8de0bec38f4ed3f392c72bfdc43 GameSeeker <bot@game-seeker.dev> 1782283266 +0800	commit: fix: 路由无匹配时返回 404，避免 Worker hang
+d0c1661150c1c8de0bec38f4ed3f392c72bfdc43 2435f2915a331536717879eac659060878c8b0e0 GameSeeker <bot@game-seeker.dev> 1782283371 +0800	commit: chore: 添加 observability 日志配置
+2435f2915a331536717879eac659060878c8b0e0 fe28292dfba6ea1e88ad5a1433febd715b1a20ec GameSeeker <bot@game-seeker.dev> 1782283564 +0800	commit: fix: itty-router v5 使用 .fetch() 而非 .handle()
+fe28292dfba6ea1e88ad5a1433febd715b1a20ec 93716c4ca2d519f66d5f372498ee62badfbdc5ca GameSeeker <bot@game-seeker.dev> 1782350146 +0800	reset: moving to 93716c4ca2d519f66d5f372498ee62badfbdc5ca
+93716c4ca2d519f66d5f372498ee62badfbdc5ca b53de01b6b44b842044c73529bb2c43fe3694949 GameSeeker <bot@game-seeker.dev> 1782350206 +0800	commit: chore: 更新版本号到 v2.0.0

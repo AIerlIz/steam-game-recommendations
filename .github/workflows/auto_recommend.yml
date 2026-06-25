@@ -1,0 +1,69 @@
+name: Auto Recommend Games
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # 每天凌晨3点
+  workflow_dispatch:
+    inputs:
+      purge:
+        description: '清空已有数据重新推荐'
+        type: boolean
+        default: false
+        required: false
+  push:
+    paths:
+      - '.github/scripts/auto_recommend.py'
+
+jobs:
+  auto-recommend:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      TZ: Asia/Shanghai
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: pip install requests
+        
+      - name: 下载当前数据
+        if: ${{ !inputs.purge }}
+        uses: ./.github/actions/download-data
+        with:
+          files: 'games_detail.json library.json index.html'
+
+      - name: AI推荐新游戏
+        run: python .github/scripts/auto_recommend.py
+        env:
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
+          STEAM_USER_ID: ${{ secrets.STEAM_USER_ID }}
+          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_API_BASE: ${{ secrets.LLM_API_BASE }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          
+      - name: 获取Steam游戏详情
+        run: python .github/scripts/fetch_steam.py
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%23a855f7'/><stop offset='100%25' stop-color='%233b82f6'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='%230f172a'/><rect width='100' height='100' rx='22' fill='url(%23g)' opacity='0.12'/><circle cx='50' cy='50' r='38' fill='none' stroke='url(%23g)' stroke-width='2' opacity='0.5'/><line x1='50' y1='11' x2='50' y2='15' stroke='%23a855f7' stroke-width='2.5' stroke-linecap='round'/><line x1='50' y1='85' x2='50' y2='89' stroke='rgba(255,255,255,0.2)' stroke-width='1.5' stroke-linecap='round'/><line x1='11' y1='50' x2='15' y2='50' stroke='rgba(255,255,255,0.2)' stroke-width='1.5' stroke-linecap='round'/><line x1='85' y1='50' x2='89' y2='50' stroke='rgba(255,255,255,0.2)' stroke-width='1.5' stroke-linecap='round'/><text x='50' y='8.5' font-size='7' font-weight='bold' fill='%23a855f7' text-anchor='middle'>N</text><rect x='40' y='16' width='20' height='68' rx='4' fill='rgba(255,255,255,0.92)'/><rect x='16' y='40' width='68' height='20' rx='4' fill='rgba(255,255,255,0.92)'/><circle cx='50' cy='50' r='5' fill='%230f172a' opacity='0.8'/><circle cx='50' cy='50' r='2.5' fill='url(%23g)'/></svg>">
+    <title>识游 · GameSeeker</title>
+    <meta name="description" content="AI 驱动的 Steam 游戏探索工具">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { width: 6px; }
+        *::-webkit-scrollbar-track { background: transparent; }
+        *::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.3); border-radius: 3px; }
+        *::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.5); }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #030712; color: #e2e8f0; min-height: 100vh;
+            background-image: radial-gradient(ellipse at 20% 50%, rgba(88,28,135,0.08) 0%, transparent 50%),
+                              radial-gradient(ellipse at 80% 20%, rgba(30,64,175,0.08) 0%, transparent 50%);
+        }
+
+        /* ===== 主容器 ===== */
+        .container { max-width: 1280px; margin: 0 auto; padding: 24px 20px 40px; }
+
+        /* ===== 头部统计 ===== */
+        header { text-align: center; padding: 48px 0 36px; }
+        h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; perspective: 600px; }
+        h1 span { background: linear-gradient(135deg, #a855f7, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .title-flip { animation: flipTitle 0.5s ease; display: inline-block; }
+        @keyframes flipTitle {
+            0% { transform: rotateY(0); }
+            50% { transform: rotateY(90deg); opacity: 0.3; }
+            100% { transform: rotateY(0); opacity: 1; }
+        }
+        .subtitle { color: #64748b; font-size: 0.95em; max-width: 500px; margin: 0 auto 28px; }
+
+        /* ===== Tab 切换（吸顶） ===== */
+        .tabs { display: flex; justify-content: center; gap: 4px; margin-bottom: 24px; background: rgba(15,23,42,0.4); border-radius: 12px; padding: 4px; width: fit-content; margin-left: auto; margin-right: auto; position: sticky; top: 0; z-index: 40; }
+        .tab { padding: 8px 24px; border-radius: 8px; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .tab:hover { color: #c084fc; background: rgba(168,85,247,0.1); }
+        .tab.active { color: #fff; background: rgba(168,85,247,0.2); }
+        .tab .count { background: rgba(255,255,255,0.08); padding: 1px 8px; border-radius: 999px; font-size: 0.75em; margin-left: 6px; color: #94a3b8; }
+        .tab.active .count { background: rgba(168,85,247,0.3); color: #c084fc; }
+
+        /* ===== 筛选+排序栏（左右边缘弹出） ===== */
+        .toolbar-wrap { position: fixed; top: 0; height: 100vh; display: flex; align-items: center; z-index: 100; cursor: default; pointer-events: none; }
+        .toolbar-wrap.pointer-active { pointer-events: auto; }
+        .toolbar {
+            width: 220px; padding: 16px;
+            background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .toolbar.visible { opacity: 1; pointer-events: auto; }
+        .toolbar.right { transform: translateX(100%); }
+        .toolbar.right.visible { transform: translateX(0); }
+        .toolbar.left { transform: translateX(-100%); }
+        .toolbar.left.visible { transform: translateX(0); }
+        .toolbar-header.reversed { flex-direction: row-reverse; }
+        @media (max-width: 768px) {
+            .toolbar-wrap { display: none; }
+        }
+        .toolbar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .toolbar-title { color: #64748b; font-size: 0.85em; font-weight: 600; }
+        .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+        .sort-wrap { position: relative; }
+        .sort-btn {
+            padding: 3px 28px 3px 12px; border-radius: 999px; border: 1px solid rgba(168,85,247,0.3);
+            background: color-mix(in srgb, #a855f7 15%, transparent);
+            color: #c084fc; font-size: 0.75em; font-weight: 500; line-height: 1.6;
+            cursor: pointer; outline: none; user-select: none; white-space: nowrap;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23c084fc' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 10px center;
+            transition: background 0.2s;
+        }
+        .sort-btn:hover { background-color: color-mix(in srgb, #a855f7 25%, transparent); }
+        .sort-dropdown {
+            position: absolute; top: calc(100% + 6px); left: 50%; z-index: 50;
+            background: #0f172a; border: 1px solid rgba(168,85,247,0.25); border-radius: 12px;
+            padding: 6px; white-space: nowrap;
+            opacity: 0; visibility: hidden; transform: translateX(-50%) translateY(-4px);
+            transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        .sort-dropdown.open { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+        .sort-opt {
+            padding: 5px 12px; border-radius: 8px; font-size: 0.75em; font-weight: 500;
+            cursor: pointer; color: #94a3b8; transition: all 0.15s;
+        }
+        .sort-opt:hover { background: color-mix(in srgb, #a855f7 15%, transparent); color: #c084fc; }
+        .sort-opt.active { background: color-mix(in srgb, #a855f7 25%, transparent); color: #fff; }
+        .filter-btn {
+            padding: 3px 10px; border-radius: 999px; border: 1px solid var(--tag-c, rgba(168,85,247,0.3));
+            background: color-mix(in srgb, var(--tag-c, #a855f7) 15%, transparent);
+            cursor: pointer; transition: all 0.2s; font-size: 0.75em; font-weight: 500;
+            color: var(--tag-c, #c084fc);
+        }
+        .filter-btn:hover { background: color-mix(in srgb, var(--tag-c, #a855f7) 25%, transparent); }
+        .filter-btn.active {
+            background: var(--tag-c, #a855f7); color: white !important;
+            border-color: var(--tag-c, #a855f7);
+        }
+
+        /* ===== 游戏网格 ===== */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px; position: relative;
+        }
+
+        /* ===== 游戏卡片 (GameSeeker风格) ===== */
+        .game-card {
+            background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px; position: relative;
+            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s ease, border-color 0.35s ease;
+            display: none;
+            backdrop-filter: blur(8px);
+        }
+        .game-card.visible {
+            display: flex; flex-direction: column; height: 100%;
+            animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) backwards;
+            animation-delay: var(--delay, 0s);
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(40px) scale(0.92); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .game-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 12px 48px rgba(168,85,247,0.15), 0 4px 16px rgba(0,0,0,0.4);
+            border-color: rgba(168,85,247,0.3);
+        }
+
+        /* 封面图 */
+        .game-cover { position: relative; border-radius: 16px 16px 0 0; overflow: hidden; }
+        .game-image { width: 100%; aspect-ratio: 460/215; object-fit: cover; display: block; transition: transform 0.5s ease; }
+        .game-card:hover .game-image { transform: scale(1.08); }
+        .game-cover::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(15,23,42,0.95) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .cover-overlay {
+            position: absolute; inset: 0; z-index: 2;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(3,7,18,0.92) 0%, rgba(3,7,18,0.7) 50%, rgba(3,7,18,0.4) 100%);
+            transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            overflow: hidden;
+        }
+        .game-cover:hover .cover-overlay { transform: translateY(0); }
+        .overlay-label {
+            font-size: 0.7em; font-weight: 600; color: #22d3ee; margin-bottom: 6px;
+            letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        .overlay-text {
+            font-size: 0.78em; color: #e2e8f0; line-height: 1.6;
+            overflow-y: auto; max-height: 120px;
+        }
+        .overlay-text::-webkit-scrollbar { width: 3px; }
+        .overlay-text::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.3); border-radius: 2px; }
+
+        /* 内容区 */
+        .card-body { padding: 14px 16px 12px; flex: 1; display: flex; flex-direction: column; }
+        .game-name { font-size: 1em; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; line-height: 1.3; flex-shrink: 0; }
+        .game-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; flex: 1; align-content: flex-start; }
+        .game-tag {
+            padding: 3px 10px; border-radius: 999px; font-size: 0.68em; font-weight: 500;
+            border: 1px solid var(--tag-c, rgba(168,85,247,0.3));
+            background: color-mix(in srgb, var(--tag-c, #a855f7) 15%, transparent);
+            color: var(--tag-c, #c084fc);
+        }
+        .game-stats { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; font-size: 0.8em; color: #94a3b8; flex-shrink: 0; }
+        .game-stats .star { color: #facc15; }
+        .game-stats .owners { color: #60a5fa; }
+
+        /* 底部按钮 */
+        .card-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; }
+        .btn-steam {
+            flex: 1; padding: 8px 0; border-radius: 8px; font-size: 0.78em; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            cursor: pointer; transition: all 0.2s; text-decoration: none;
+            background: rgba(255,255,255,0.06); color: #94a3b8;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .btn-steam svg { width: 14px; height: 14px; }
+        .btn-steam:hover { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+
+        /* 截图缩略图 */
+        .ss-thumb {
+            width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px;
+            cursor: pointer; transition: transform 0.25s ease, box-shadow 0.25s ease;
+            position: relative; z-index: 1;
+        }
+        @media (hover: hover) {
+            .ss-thumb:hover {
+                transform: scale(2.5); z-index: 50;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            }
+        }
+
+        /* 截图 Lightbox */
+        .ss-lightbox {
+            display: flex; position: absolute; inset: 0; z-index: 100;
+            align-items: center; justify-content: center;
+            border-radius: 16px; overflow: hidden;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .ss-lightbox.show { opacity: 1; pointer-events: auto; }
+        .ss-lightbox-bg {
+            position: absolute; inset: 0; background: rgba(3,7,18,0.88);
+            cursor: pointer;
+        }
+        .ss-lightbox-img {
+            position: relative; max-width: calc(100% - 32px); max-height: calc(100% - 32px);
+            object-fit: contain; border-radius: 6px; z-index: 1;
+            pointer-events: none; user-select: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            animation: lbImgIn 0.25s ease;
+        }
+        @keyframes lbImgIn {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* ===== 底部 ===== */
+        footer { text-align: center; padding: 48px 20px; color: #334155; font-size: 0.8em; }
+
+        /* ===== 骨架屏 ===== */
+        .skeleton-card {
+            background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px; overflow: hidden; backdrop-filter: blur(8px);
+        }
+        .skeleton-box {
+            background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+        }
+        .skeleton-cover { width: 100%; aspect-ratio: 460/215; border-radius: 16px 16px 0 0; }
+        .skeleton-body { padding: 14px 16px 12px; }
+        .skeleton-title { height: 16px; width: 70%; margin-bottom: 8px; }
+        .skeleton-tags { display: flex; gap: 5px; margin-bottom: 10px; }
+        .skeleton-tag { height: 22px; width: 50px; border-radius: 999px; }
+        .skeleton-stats { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .skeleton-rating { height: 14px; width: 30%; }
+        .skeleton-price { height: 14px; width: 25%; }
+        .skeleton-reason { height: 32px; width: 100%; margin-bottom: 8px; border-radius: 4px; }
+        .skeleton-screenshots { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; margin-top: 8px; margin-bottom: 10px; }
+        .skeleton-screenshot { aspect-ratio: 16/9; border-radius: 4px; }
+        .skeleton-actions { height: 32px; width: 100%; border-radius: 8px; }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        @media (max-width: 768px) {
+            .games-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+            h1 { font-size: 1.6em; }
+            .stats { gap: 32px; }
+            .game-card:hover { transform: translateY(-3px) scale(1.01); }
+        }
+        @media (max-width: 480px) {
+            .games-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===== 加载/错误状态 ===== */
+        .loading-state {
+            grid-column: 1 / -1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 100px 20px 120px; gap: 20px;
+        }
+        .loading-state .ls-icon {
+            font-size: 48px; width: 80px; height: 80px; display: flex;
+            align-items: center; justify-content: center;
+            background: rgba(168,85,247,0.08); border-radius: 20px;
+            border: 1px solid rgba(168,85,247,0.1);
+        }
+        .loading-state .ls-text { font-size: 1em; color: #94a3b8; font-weight: 500; }
+        .loading-state .ls-sub { font-size: 0.8em; color: #64748b; margin-top: -8px; }
+        .loading-state .ls-btn {
+            padding: 10px 28px; border-radius: 999px; border: 1px solid rgba(168,85,247,0.25);
+            background: rgba(168,85,247,0.1); color: #c084fc;
+            cursor: pointer; font-size: 0.85em; font-weight: 600;
+            transition: all 0.25s; margin-top: 8px;
+        }
+        .loading-state .ls-btn:hover { background: rgba(168,85,247,0.2); border-color: rgba(168,85,247,0.5); transform: translateY(-1px); }
+
+        /* ===== 回到顶部 ===== */
+        .back-to-top {
+            position: fixed; left: 50%; transform: translateX(-50%); bottom: 32px; z-index: 90;
+            height: 40px; border-radius: 20px; padding: 0 18px;
+            background: rgba(15,23,42,0.7); border: 1px solid rgba(168,85,247,0.2);
+            color: #c084fc; font-size: 13px; gap: 6px;
+            display: flex; align-items: center;
+            cursor: pointer; backdrop-filter: blur(8px); white-space: nowrap;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .back-to-top.visible { opacity: 1; pointer-events: auto; }
+        .back-to-top svg { width: 16px; height: 16px; }
+        .back-to-top:hover {
+            background: rgba(15,23,42,0.9); border-color: rgba(168,85,247,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>为你<span>甄选</span></h1>
+            <p class="subtitle">基于 Steam 档案 AI 分析，多兴趣路由 + RRF 融合排序</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="recommend">推荐 <span class="count" id="recTabCount">-</span></button>
+            <button class="tab" data-tab="library">我的库 <span class="count" id="libTabCount">-</span></button>
+        </div>
+
+        <div class="toolbar-wrap" id="toolbarWrap">
+            <div class="toolbar right" id="toolbar">
+                <div class="toolbar-header">
+                    <div class="sort-wrap" id="sortWrap">
+                        <div class="sort-btn" id="sortBtn">默认排序</div>
+                        <div class="sort-dropdown" id="sortDropdown">
+                            <div class="sort-opt active" data-value="default">默认排序</div>
+                            <div class="sort-opt" data-value="rating">评分最高</div>
+                            <div class="sort-opt" data-value="price">价格最低</div>
+                            <div class="sort-opt" data-value="date">最新发布</div>
+                        </div>
+                    </div>
+                    <div class="toolbar-title">标签维度</div>
+                </div>
+                <div class="filters" id="filters">
+                    <button class="filter-btn active" data-tag="all" style="--tag-c:#a855f7">全部</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="games-grid" id="gamesGrid"></div>
+        <div class="games-grid" id="libraryGrid" style="display:none"></div>
+
+        <footer id="footer">GameSeeker · 由 AI + DeepSteam 算法生成</footer>
+    </div>
+
+    <div class="back-to-top" id="backToTop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+        回到顶部
+    </div>
+
+    <script>
+        const APP_VERSION = 'v2.0.0';
+        const PROXY_BASE = '__PROXY_BASE__';
+
+        // ===== UA 检测 =====
+        function isMobile() {
+            return /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent) ||
+                   /iPad/i.test(navigator.userAgent) ||
+                   (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+        }
+
+        // ===== 工具函数 =====
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s || '';
+            return d.innerHTML;
+        }
+
+        function attrEsc(s) {
+            return esc(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function tagColor(tag) {
+            let hash = 0;
+            for (let i = 0; i < tag.length; i++) hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+            return `hsl(${Math.abs(hash) % 360}, 55%, 45%)`;
+        }
+
+        function renderPrice(price, isFree) {
+            if (isFree) return '<span style="color:#22d3ee">免费</span>';
+            if (!price) return '<span style="color:#64748b">价格未知</span>';
+            const f = price.final / 100;
+            const d = price.discount_percent || 0;
+            if (d > 0) {
+                const i = price.initial / 100;
+                return `<span style="color:#4ade80">¥${f.toFixed(0)} <span style="text-decoration:line-through;color:#64748b;font-size:0.85em">¥${i.toFixed(0)}</span> <span style="background:#16a34a;color:#fff;padding:1px 5px;border-radius:4px;font-size:0.8em">-${d}%</span></span>`;
+            }
+            return `<span>¥${f.toFixed(0)}</span>`;
+        }
+
+        let globalPrior = 0.8;
+
+        function computeGlobalPrior() {
+            let totalPos = 0, totalAll = 0;
+            for (const g of recGamesAll) {
+                const r = g.review;
+                if (r && r.total > 0) {
+                    totalPos += r.positive;
+                    totalAll += r.total;
+                }
+            }
+            if (totalAll > 0) globalPrior = totalPos / totalAll;
+        }
+
+        function bayesianRating(review, C = 200) {
+            if (!review || review.total <= 0) return 0;
+            return (review.positive + C * globalPrior) / (review.total + C);
+        }
+
+        function calcRating(review) {
+            const r = bayesianRating(review);
+            return r > 0 ? (r * 10).toFixed(1) : null;
+        }
+
+        function getGameTags(game, includeSaleTag) {
+            return includeSaleTag && game.on_sale
+                ? (game.genres || []).concat(['促销'])
+                : (game.genres || []);
+        }
+
+        // ===== 卡片渲染（共享模板） =====
+        function renderCardBase(game, index, opts) {
+            const img = game.header_image
+                ? `<img src="${esc(game.header_image)}" alt="${esc(game.name)}" class="game-image" loading="lazy"${opts.imgOnError || ''}>`
+                : `<div style="width:100%;aspect-ratio:460/215;background:#0f172a;display:flex;align-items:center;justify-content:center;color:#334155">🎮</div>`;
+            const genres = (game.genres || []);
+            const tagHtml = genres.map(g => `<span class="game-tag" style="--tag-c:${tagColor(g)}">${esc(g)}</span>`).join('');
+            const rating = calcRating(game.review);
+            const ss = game.screenshots || [];
+            const ssHtml = ss.slice(0, 3).map(s =>
+                `<img src="${esc(s)}" class="ss-thumb" loading="lazy" onclick="toggleThumb(this, event)">`
+            ).join('');
+            const allSs = attrEsc(JSON.stringify(ss));
+            const dataTags = (game.genres || []).join(',') + (opts.extraDataTags || '');
+
+            return `
+            <div class="game-card" data-tags="${attrEsc(dataTags)}" data-appid="${attrEsc(String(game.appid))}" style="--delay:${index * 0.08}s">
+                <div class="game-cover">${img}${opts.overlayText ? `
+                    <div class="cover-overlay">
+                        <div class="overlay-label">${opts.overlayLabel || ''}</div>
+                        <div class="overlay-text">${esc(opts.overlayText)}</div>
+                    </div>` : ''}
+                </div>
+                <div class="card-body" style="position:relative">
+                    <div class="game-name" onclick="copyName(this)" data-appid="${attrEsc(String(game.appid))}" data-copy="${attrEsc(opts.copyField)}" style="cursor:pointer" title="点击复制">${esc(game.name)}</div>
+                    <div class="game-tags">${tagHtml}${opts.extraTags || ''}</div>
+                    <div class="game-stats">
+                        ${rating ? `<span class="star">★ ${rating}</span>` : ''}
+                        <span style="margin-left:auto">${opts.statSection}</span>
+                    </div>
+                    ${ss.length ? `
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px">${ssHtml}</div>
+                    <div class="ss-lightbox" data-all="${allSs}">
+                        <div class="ss-lightbox-bg"></div>
+                        <img class="ss-lightbox-img" src="">
+                    </div>` : ''}
+                    <div class="card-actions">
+                        <a href="https://store.steampowered.com/app/${game.appid}/" target="_blank" class="btn-steam" onclick="event.stopPropagation()" style="flex:1">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            Steam
+                        </a>
+                        <a href="https://byrutgame.org/?do=search&subaction=search&story=${encodeURIComponent(game.name)}" target="_blank" class="btn-steam" data-name="${attrEsc(game.name)}" onclick="searchByrut(event);return false;" style="flex:1">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            byrutgame
+                        </a>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function renderCard(game, index) {
+            const isRec = !!game.reason;
+            const pt = game.playtime_hours || 0;
+            const ptText = pt < 1
+                ? '<span style="color:#94a3b8">游玩不足 1 小时</span>'
+                : `<span style="color:#60a5fa">${pt.toFixed(1)} 小时</span>`;
+            return renderCardBase(game, index, {
+                imgOnError: isRec ? '' : ' onerror="this.onerror=null;this.style.display=\'none\'"',
+                extraTags: isRec && game.on_sale ? `<span class="game-tag" style="--tag-c:#22c55e">促销</span>` : '',
+                extraDataTags: isRec && game.on_sale ? ',促销' : '',
+                copyField: game.name,
+                statSection: isRec ? renderPrice(game.price, game.is_free) : ptText,
+                overlayText: game.reason || game.short_description || '',
+                overlayLabel: game.reason ? 'AI 推荐理由' : '游戏简介',
+            });
+        }
+
+        // ===== 通过 CF Proxy 查 Steam 英文名（byrutgame 搜索 + 复制共用） =====
+        const _enNameCache = new Map();
+
+        function searchByrut(e) {
+            e.preventDefault();
+            const a = e.currentTarget;
+            const card = a.closest('.game-card');
+            const appid = card.dataset.appid;
+            const fallback = a.dataset.name;
+            const cached = _enNameCache.get(appid);
+            if (cached) {
+                window.open('https://byrutgame.org/?do=search&subaction=search&story=' + encodeURIComponent(cached), '_blank');
+                return;
+            }
+            const win = window.open('', '_blank');
+            const proxyUrl = `${PROXY_BASE}/https://store.steampowered.com/api/appdetails?appids=${appid}&l=english`;
+            const navigate = (url) => {
+                if (win && !win.closed) win.location.href = url;
+                else window.location.href = url;
+            };
+            fetch(proxyUrl)
+                .then(r => r.json())
+                .then(data => {
+                    const enName = data[appid]?.data?.name || fallback;
+                    _enNameCache.set(appid, enName);
+                    navigate('https://byrutgame.org/?do=search&subaction=search&story=' + encodeURIComponent(enName));
+                })
+                .catch(() => {
+                    navigate('https://byrutgame.org/?do=search&subaction=search&story=' + encodeURIComponent(fallback));
+                });
+        }
+
+        function prefetchEnglishNames(games) {
+            const pending = games.filter(g => g.appid && !_enNameCache.has(g.appid));
+            for (let i = 0; i < pending.length; i += 8) {
+                const batch = pending.slice(i, i + 8);
+                batch.forEach(g => {
+                    const proxyUrl = `${PROXY_BASE}/https://store.steampowered.com/api/appdetails?appids=${g.appid}&l=english`;
+                    fetch(proxyUrl)
+                        .then(r => r.json())
+                        .then(data => { const n = data[g.appid]?.data?.name; if (n) _enNameCache.set(g.appid, n); })
+                        .catch(() => {});
+                });
+            }
+        }
+
+        // ===== 复制游戏名（通过 CF Proxy 查 Steam 英文名） =====
+        function copyName(el) {
+            const appid = el.dataset.appid;
+            const fallbackText = el.dataset.copy;
+            const orig = el.textContent;
+
+            const showCopied = () => {
+                if (!document.body.contains(el)) return;
+                el.textContent = '已复制 ✓';
+                el.style.color = '#22d3ee';
+                setTimeout(() => {
+                    if (!document.body.contains(el)) return;
+                    el.textContent = orig;
+                    el.style.color = '';
+                }, 1200);
+            };
+
+            const doCopy = (text) => {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(showCopied).catch(() => {
+                        fallbackCopy(text, showCopied);
+                    });
+                } else {
+                    fallbackCopy(text, showCopied);
+                }
+            };
+
+            if (appid) {
+                const cached = _enNameCache.get(appid);
+                if (cached) { doCopy(cached); return; }
+                const proxyUrl = `${PROXY_BASE}/https://store.steampowered.com/api/appdetails?appids=${appid}&l=english`;
+                fetch(proxyUrl)
+                    .then(r => r.json())
+                    .then(data => {
+                        const n = data[appid]?.data?.name;
+                        if (n) _enNameCache.set(appid, n);
+                        doCopy(n || fallbackText);
+                    })
+                    .catch(() => doCopy(fallbackText));
+            } else {
+                doCopy(fallbackText);
+            }
+        }
+        function fallbackCopy(text, done) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.pointerEvents = 'none';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); done(); } catch (e) { console.warn('复制失败', e); }
+            document.body.removeChild(ta);
+        }
+
+        // ===== 交互 =====
+        // ===== 截图 Lightbox + 滑动手势 =====
+        let touchCtx = {};
+        let _thumbLocked = false;
+
+        document.addEventListener('touchstart', (e) => {
+            if (_thumbLocked) return;
+            const lb = e.target.closest('.ss-lightbox');
+            if (!lb || !lb.classList.contains('show')) return;
+            touchCtx = { lb, startX: e.touches[0].clientX, swiped: false };
+        }, {passive: true});
+
+        document.addEventListener('touchmove', (e) => {
+            if (!touchCtx.lb) return;
+            if (Math.abs(e.touches[0].clientX - touchCtx.startX) > 10) touchCtx.swiped = true;
+        }, {passive: true});
+
+        document.addEventListener('touchend', (e) => {
+            const { lb, startX, swiped } = touchCtx;
+            touchCtx = {};
+            if (!lb || !swiped) return;
+            _thumbLocked = true;
+            setTimeout(() => { _thumbLocked = false; }, 200);
+            const dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 30) {
+                const all = JSON.parse(lb.dataset.all);
+                let idx = parseInt(lb.dataset.index || '0');
+                if (dx < 0 && idx < all.length - 1) {
+                    idx++;
+                } else if (dx > 0 && idx > 0) {
+                    idx--;
+                } else { return; }
+                lb.dataset.index = idx;
+                lb.querySelector('.ss-lightbox-img').src = all[idx];
+            }
+        }, {passive: true});
+
+        function toggleThumb(el, ev) {
+            if (touchCtx.swiped) { touchCtx = {}; return; }
+            if (_thumbLocked) return;
+            if (ev) ev.stopPropagation();
+            if (!isMobile()) { window.open(el.src); return; }
+            document.querySelectorAll('.ss-lightbox.show').forEach(l => l.classList.remove('show'));
+            const card = el.closest('.game-card');
+            const lb = card.querySelector('.ss-lightbox');
+            const imgs = [...el.parentElement.querySelectorAll(':scope > .ss-thumb')];
+            lb.dataset.index = imgs.indexOf(el);
+            lb.querySelector('.ss-lightbox-img').src = el.src;
+            lb.classList.add('show');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('ss-lightbox-bg')) {
+                e.target.closest('.ss-lightbox').classList.remove('show');
+            } else if (!e.target.closest('.ss-thumb')) {
+                document.querySelectorAll('.ss-lightbox.show').forEach(l => l.classList.remove('show'));
+            }
+        });
+
+        // ===== 排序 =====
+        function sortGames(games, sortBy) {
+            const sorted = [...games];
+            switch (sortBy) {
+                case 'rating':
+                    sorted.sort((a, b) => {
+                        return bayesianRating(b.review) - bayesianRating(a.review);
+                    });
+                    break;
+                case 'price':
+                    sorted.sort((a, b) => {
+                        const pa = a.price ? a.price.final : Infinity;
+                        const pb = b.price ? b.price.final : Infinity;
+                        return pa - pb;
+                    });
+                    break;
+                case 'date':
+                    sorted.sort((a, b) => {
+                        const da = Date.parse(a.release_date) || 0;
+                        const db = Date.parse(b.release_date) || 0;
+                        return db - da;
+                    });
+                    break;
+                default:
+                    sorted.sort((a, b) => (b.rrf_score || 0) - (a.rrf_score || 0));
+            }
+            return sorted;
+        }
+
+        // ===== 分页懒加载 =====
+        const PAGE_SIZE = 12;
+        let observer = null;
+
+        let recState = { games: [], loadedPage: 0 };
+        let recGamesAll = [];
+        let libState = { games: [], loadedPage: 0 };
+
+        function pagState() {
+            return currentTab === 'library' ? libState : recState;
+        }
+
+        function pagGrid() {
+            return document.getElementById(currentTab === 'library' ? 'libraryGrid' : 'gamesGrid');
+        }
+
+        function renderPage(page, append) {
+            const st = pagState();
+            const grid = pagGrid();
+            if (!append) grid.innerHTML = '';
+            
+            const start = page * PAGE_SIZE;
+            const end = Math.min(start + PAGE_SIZE, st.games.length);
+            if (start >= st.games.length) return;
+            
+            const slice = st.games.slice(start, end);
+            slice.forEach((g, i) => {
+                const globalIdx = start + i;
+                const card = document.createElement('div');
+                card.innerHTML = renderCard(g, globalIdx);
+                const el = card.firstElementChild;
+                el.classList.add('visible');
+                grid.appendChild(el);
+            });
+            
+            st.loadedPage = page + 1;
+            
+            updateSentinel();
+        }
+
+        function renderPagePrev() {
+            const st = pagState();
+            if (st.loadedPage <= 1) return;
+            st.loadedPage--;
+            renderPage(0, false);
+        }
+
+        function renderPageNext() {
+            const st = pagState();
+            if (st.loadedPage * PAGE_SIZE >= st.games.length) return;
+            renderPage(st.loadedPage, true);
+        }
+
+        function updateSentinel() {
+            const grid = pagGrid();
+            const st = pagState();
+            let sentinel = document.getElementById('loadSentinel');
+            if (!sentinel) {
+                sentinel = document.createElement('div');
+                sentinel.id = 'loadSentinel';
+                sentinel.style.height = '1px';
+                grid.after(sentinel);
+            }
+            if (st.loadedPage * PAGE_SIZE >= st.games.length) {
+                sentinel.remove();
+                if (observer) { observer.disconnect(); observer = null; }
+                return;
+            }
+            if (!observer) {
+                observer = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting) {
+                        renderPageNext();
+                    }
+                }, { rootMargin: '400px' });
+            }
+            observer.observe(sentinel);
+        }
+
+        function renderAllCards(games) {
+            const st = pagState();
+            st.games = games;
+            st.loadedPage = 0;
+            if (observer) { observer.disconnect(); observer = null; }
+            renderPage(0, false);
+        }
+
+        function bindGridWheel() {
+            let ticking = false;
+            document.querySelectorAll('.games-grid').forEach(grid => {
+                grid.addEventListener('wheel', (e) => {
+                    const overlay = e.target.closest('.cover-overlay');
+                    if (!overlay) return;
+                    const textEl = overlay.querySelector('.overlay-text');
+                    if (textEl && textEl.scrollHeight > textEl.clientHeight) return;
+                    if (ticking) return;
+                    e.preventDefault();
+                    if (e.deltaY > 0) renderPageNext();
+                    else renderPagePrev();
+                    ticking = true;
+                    setTimeout(() => { ticking = false; }, 200);
+                }, { passive: false });
+            });
+        }
+
+        // ===== 筛选 =====
+        function applyFilter(sortFn, includeSaleTag) {
+            const activeTags = [...document.querySelectorAll('.filter-btn.active')].map(b => b.dataset.tag);
+            const activeOpt = document.querySelector('.sort-opt.active');
+            const sortBy = activeOpt ? activeOpt.dataset.value : 'default';
+            let pool = currentTab === 'recommend' ? recGamesAll : libraryGames;
+            let filtered = sortFn(pool, sortBy);
+            if (activeTags.length > 0 && !activeTags.includes('all')) {
+                filtered = filtered.filter(g => {
+                    const tags = getGameTags(g, includeSaleTag);
+                    return activeTags.every(t => tags.includes(t));
+                });
+            }
+            renderAllCards(filtered);
+        }
+
+        // ===== 自定义排序下拉 =====
+        let _sortListenersInit = false;
+        function bindSortDropdown() {
+            const btn = document.getElementById('sortBtn');
+            const dd = document.getElementById('sortDropdown');
+
+            if (!_sortListenersInit) {
+                _sortListenersInit = true;
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dd.classList.toggle('open');
+                });
+                document.addEventListener('click', () => {
+                    const d = document.getElementById('sortDropdown');
+                    if (d) d.classList.remove('open');
+                });
+                dd.addEventListener('click', (e) => {
+                    const opt = e.target.closest('.sort-opt');
+                    if (!opt) return;
+                    dd.querySelector('.sort-opt.active').classList.remove('active');
+                    opt.classList.add('active');
+                    btn.textContent = opt.textContent;
+                    dd.classList.remove('open');
+                    if (currentTab === 'library') applyFilter(sortLibraryGames, false);
+                    else applyFilter(sortGames, true);
+                });
+            }
+        }
+
+        let _filterDelegationInit = false;
+        function bindFilters() {
+            if (_filterDelegationInit) return;
+            _filterDelegationInit = true;
+            document.getElementById('filters').addEventListener('click', (e) => {
+                const btn = e.target.closest('.filter-btn');
+                if (!btn) return;
+                if (btn.dataset.tag === 'all') {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                } else {
+                    document.querySelector('[data-tag="all"]').classList.remove('active');
+                    btn.classList.toggle('active');
+                    if (!document.querySelector('.filter-btn.active')) {
+                        document.querySelector('[data-tag="all"]').classList.add('active');
+                    }
+                }
+                if (currentTab === 'library') applyFilter(sortLibraryGames, false);
+                else applyFilter(sortGames, true);
+            });
+        }
+
+        // ===== 游戏库 =====
+        let libraryGames = [];
+        let currentTab = 'recommend';
+        let libLoaded = false;
+        let tabState = { recommend: null, library: null };
+
+        function sortLibraryGames(games, sortBy) {
+            const sorted = [...games];
+            switch (sortBy) {
+                case 'rating':
+                    sorted.sort((a, b) => {
+                        return bayesianRating(b.review) - bayesianRating(a.review);
+                    });
+                    break;
+                case 'name':
+                    sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    break;
+                default:
+                    sorted.sort((a, b) => (b.playtime_hours || 0) - (a.playtime_hours || 0));
+            }
+            return sorted;
+        }
+
+        function saveTabState() {
+            const sortEl = document.querySelector('.sort-opt.active');
+            const sortBy = sortEl ? sortEl.dataset.value : 'default';
+            const tags = [...document.querySelectorAll('.filter-btn.active')].map(b => b.dataset.tag);
+            tabState[currentTab] = { sortBy, activeTags: tags };
+        }
+
+        function applyTabState(saved) {
+            if (!saved) return;
+            const sortOpt = document.querySelector(`.sort-opt[data-value="${saved.sortBy}"]`);
+            if (sortOpt) {
+                document.querySelectorAll('.sort-opt').forEach(o => o.classList.remove('active'));
+                sortOpt.classList.add('active');
+                document.getElementById('sortBtn').textContent = sortOpt.textContent;
+            }
+            if (saved.activeTags && !saved.activeTags.includes('all')) {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                saved.activeTags.forEach(tag => {
+                    const btn = document.querySelector(`.filter-btn[data-tag="${esc(tag)}"]`);
+                    if (btn) btn.classList.add('active');
+                });
+            }
+            if (currentTab === 'library') applyFilter(sortLibraryGames, false);
+            else applyFilter(sortGames, true);
+        }
+
+        function switchTab(tab) {
+            if (tab === currentTab) return;
+            saveTabState();
+            currentTab = tab;
+
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+            document.getElementById('gamesGrid').style.display = tab === 'recommend' ? '' : 'none';
+            document.getElementById('libraryGrid').style.display = tab === 'library' ? '' : 'none';
+
+            const h1 = document.querySelector('h1');
+            h1.classList.add('title-flip');
+            setTimeout(() => {
+                h1.innerHTML = tab === 'library'
+                    ? '<span>甄选</span>为你'
+                    : '为你<span>甄选</span>';
+            }, 250);
+            setTimeout(() => h1.classList.remove('title-flip'), 500);
+
+            if (tab === 'library') {
+                if (!libLoaded) {
+                    document.getElementById('libraryGrid').innerHTML = SKELETON_CARD.repeat(6);
+                    loadLibraryData();
+                } else {
+                    loadLibraryData();
+                    applyTabState(tabState.library);
+                }
+            } else {
+                rebuildRecUI();
+                applyTabState(tabState.recommend);
+            }
+        }
+
+        function buildSortOptions(options) {
+            const dd = document.getElementById('sortDropdown');
+            dd.innerHTML = options.map((o, i) =>
+                `<div class="sort-opt${i === 0 ? ' active' : ''}" data-value="${o.value}">${esc(o.label)}</div>`
+            ).join('');
+            document.getElementById('sortBtn').textContent = esc(options[0].label);
+            bindSortDropdown();
+        }
+
+        function buildFilterButtons(games, includeSaleTag) {
+            const tagsAll = new Set();
+            games.forEach(g => {
+                (g.genres || []).forEach(t => tagsAll.add(t));
+                if (includeSaleTag && g.on_sale) tagsAll.add('促销');
+            });
+            let html = '<button class="filter-btn active" data-tag="all" style="--tag-c:#a855f7">全部</button>';
+            [...tagsAll].sort((a, b) => {
+                if (a === '促销') return -1;
+                if (b === '促销') return 1;
+                return a.length - b.length;
+            }).forEach(g => {
+                const c = tagColor(g);
+                html += `<button class="filter-btn" data-tag="${esc(g)}" style="--tag-c:${c}">${esc(g)}</button>`;
+            });
+            document.getElementById('filters').innerHTML = html;
+            bindFilters();
+        }
+
+        function rebuildLibUI() {
+            buildSortOptions([
+                { value: 'default', label: '游玩时长' },
+                { value: 'rating', label: '评分最高' },
+                { value: 'name', label: '名称 A-Z' },
+            ]);
+            buildFilterButtons(libraryGames, false);
+            libState.games = sortLibraryGames(libraryGames, 'default');
+            renderAllCards(libState.games);
+        }
+
+        function rebuildRecUI() {
+            buildSortOptions([
+                { value: 'default', label: '默认排序' },
+                { value: 'rating', label: '评分最高' },
+                { value: 'price', label: '价格最低' },
+                { value: 'date', label: '最新发布' },
+            ]);
+            buildFilterButtons(recGamesAll, true);
+            let sorted = sortGames(recGamesAll, 'default');
+            renderAllCards(sorted);
+        }
+
+        function loadLibraryData() {
+            if (libLoaded) { rebuildLibUI(); return; }
+            fetch('library.json')
+                .then(r => r.json())
+                .then(data => {
+                    libraryGames = data.games || [];
+                    libLoaded = true;
+                    document.getElementById('libTabCount').textContent = libraryGames.length;
+                    rebuildLibUI();
+                    prefetchEnglishNames(libraryGames);
+                })
+                .catch(() => {
+                    document.getElementById('libraryGrid').innerHTML = '<div class="loading-state"><div class="ls-icon">📡</div><div class="ls-text">加载失败</div><div class="ls-sub">无法连接到游戏库，请检查网络后重试</div><button class="ls-btn" onclick="loadLibraryData()">重试</button></div>';
+                });
+        }
+
+        document.querySelector('.tabs').addEventListener('click', e => {
+            const tab = e.target.closest('.tab');
+            if (tab) switchTab(tab.dataset.tab);
+        });
+
+        // ===== 骨架屏生成 =====
+        const SKELETON_CARD = '<div class="skeleton-card"><div class="skeleton-box skeleton-cover"></div><div class="skeleton-body"><div class="skeleton-box skeleton-title"></div><div class="skeleton-tags"><div class="skeleton-box skeleton-tag"></div><div class="skeleton-box skeleton-tag"></div><div class="skeleton-box skeleton-tag"></div></div><div class="skeleton-stats"><div class="skeleton-box skeleton-rating"></div><div class="skeleton-box skeleton-price"></div></div><div class="skeleton-box skeleton-reason"></div><div class="skeleton-screenshots"><div class="skeleton-box skeleton-screenshot"></div><div class="skeleton-box skeleton-screenshot"></div><div class="skeleton-box skeleton-screenshot"></div></div><div class="skeleton-box skeleton-actions"></div></div></div>';
+
+        function renderSkeletons(count) {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                grid.innerHTML += SKELETON_CARD;
+            }
+        }
+        renderSkeletons(6);
+
+        // ===== 预加载游戏库数量 =====
+        fetch('library.json')
+            .then(r => r.json())
+            .then(data => {
+                const count = (data.games || []).length;
+                document.getElementById('libTabCount').textContent = count;
+            })
+            .catch(() => {});
+
+        // ===== 数据加载 =====
+        fetch('games_detail.json')
+            .then(r => r.json())
+            .then(data => {
+                const games = data.games || [];
+                if (!games.length) {
+                    document.getElementById('gamesGrid').innerHTML = '<div class="loading-state"><div class="ls-icon">🎯</div><div class="ls-text">暂无推荐</div><div class="ls-sub">AI 正在分析你的游戏偏好，明天再来看看吧</div></div>';
+                    return;
+                }
+                document.getElementById('recTabCount').textContent = games.length;
+
+                recGamesAll = games;
+                computeGlobalPrior();
+                rebuildRecUI();
+                prefetchEnglishNames(games);
+                document.getElementById('footer').innerHTML = 'GameSeeker · 由 AI + DeepSteam V50 算法生成 | ' + new Date().toISOString().slice(0, 10) + ' <span id="version" style="color:#334155">' + APP_VERSION + '</span>';
+                bindGridWheel();
+            })
+            .catch(() => {
+                document.getElementById('gamesGrid').innerHTML = '<div class="loading-state"><div class="ls-icon">⚠️</div><div class="ls-text">加载失败</div><div class="ls-sub">无法获取推荐数据，请刷新页面重试</div><button class="ls-btn" onclick="location.reload()">刷新页面</button></div>';
+            });
+
+        // ===== Toolbar 左右边缘弹出（垂直居中） =====
+        (() => {
+            const wrap = document.getElementById('toolbarWrap');
+            const panel = document.getElementById('toolbar');
+            const header = panel.querySelector('.toolbar-header');
+            const EDGE = 30;
+            const SHOW_DELAY = 200;
+            let hideTimer = null;
+            let showTimer = null;
+            let overWrap = false;
+            let side = 'right';
+
+            function setSide(s) {
+                if (s === side) return;
+                side = s;
+                panel.classList.toggle('right', s === 'right');
+                panel.classList.toggle('left', s === 'left');
+                header.classList.toggle('reversed', s === 'left');
+                wrap.style[s] = '0';
+                wrap.style[s === 'right' ? 'left' : 'right'] = 'auto';
+            }
+
+            function scheduleHide() {
+                clearTimeout(hideTimer);
+                hideTimer = setTimeout(() => {
+                    panel.classList.remove('visible');
+                    wrap.classList.remove('pointer-active');
+                }, 500);
+            }
+
+            function showOnSide(newSide) {
+                clearTimeout(showTimer);
+                showTimer = setTimeout(() => {
+                    panel.style.transition = 'none';
+                    if (panel.classList.contains('visible')) panel.classList.remove('visible');
+                    setSide(newSide);
+                    void panel.offsetHeight;
+                    panel.style.transition = '';
+                    panel.classList.add('visible');
+                    wrap.classList.add('pointer-active');
+                }, SHOW_DELAY);
+            }
+
+            document.addEventListener('mousemove', (e) => {
+                const nearRight = window.innerWidth - e.clientX < EDGE;
+                const nearLeft = e.clientX < EDGE;
+                const nearEdge = nearRight || nearLeft;
+
+                if (nearEdge && !overWrap) {
+                    const newSide = nearRight ? 'right' : 'left';
+                    if (!panel.classList.contains('visible') || newSide !== side) {
+                        showOnSide(newSide);
+                    }
+                    clearTimeout(hideTimer);
+                } else if (!nearEdge && !overWrap && panel.classList.contains('visible')) {
+                    clearTimeout(showTimer);
+                    scheduleHide();
+                }
+            });
+
+            wrap.addEventListener('mouseenter', () => {
+                overWrap = true;
+                clearTimeout(hideTimer);
+                clearTimeout(showTimer);
+            });
+            wrap.addEventListener('mouseleave', () => {
+                overWrap = false;
+                scheduleHide();
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth <= 768) {
+                    panel.classList.remove('visible');
+                    wrap.classList.remove('pointer-active');
+                    clearTimeout(hideTimer);
+                    clearTimeout(showTimer);
+                }
+            });
+        })();
+
+        // ===== 回到顶部 =====
+        (() => {
+            const btn = document.getElementById('backToTop');
+            function checkBackToTop() {
+                btn.classList.toggle('visible', window.scrollY > 500);
+            }
+            checkBackToTop();
+            document.addEventListener('scroll', checkBackToTop, { passive: true });
+            btn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        })();
+    </script>
+</body>
+</html>
+

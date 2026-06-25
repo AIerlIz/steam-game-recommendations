@@ -1,0 +1,2 @@
+# Python >= 3.10 (使用 dict | None 联合类型语法)
+requests>=2.28.0
