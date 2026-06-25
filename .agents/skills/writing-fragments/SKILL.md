@@ -1,8 +1,7 @@
 ---
 name: writing-fragments
 description: Writing, explore — mine raw fragments, no structure yet.
-license: MIT
-compatibility: opencode
+disable-model-invocation: true
 ---
 
 <what-to-do>

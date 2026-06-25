@@ -1,8 +1,7 @@
 ---
 name: loop-me
 description: Grill me about specs for the workflows I want to build, within this workspace.
-license: MIT
-compatibility: opencode
+disable-model-invocation: true
 argument-hint: "A workflow to design, or nothing to go find one"
 ---
 

@@ -1,8 +1,7 @@
 ---
 name: writing-shape
 description: Writing, exploit — shape raw material into an article, paragraph by paragraph.
-license: MIT
-compatibility: opencode
+disable-model-invocation: true
 ---
 
 <what-to-do>

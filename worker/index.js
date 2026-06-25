@@ -205,6 +205,39 @@ export default {
       }
     }
 
+    if (path === '/api/test-cron' && request.method === 'POST') {
+      const { cron } = await request.json().catch(() => ({}));
+      const testEnv = env;
+      try {
+        if (cron === 'recommend') {
+          const recs = await recommend(testEnv);
+          await fetchSteam(testEnv).catch(e => console.error('fetchSteam 失败:', e));
+          return jsonResponse({ ok: true, action: 'recommend', count: recs?.length || 0 });
+        }
+        if (cron === 'library') {
+          await fetchLibrary(testEnv);
+          await fillDetails(testEnv).catch(e => console.error('fillDetails 失败:', e));
+          return jsonResponse({ ok: true, action: 'library' });
+        }
+        if (cron === 'discounts') {
+          await checkDiscounts(testEnv);
+          return jsonResponse({ ok: true, action: 'discounts' });
+        }
+        if (cron === 'config') {
+          const keys = ['STEAM_API_KEY','STEAM_USER_ID','LLM_PROVIDER','LLM_API_KEY','LLM_MODEL','RECOMMEND_K','STEAM_LANG'];
+          const result = {};
+          for (const k of keys) {
+            const v = await testEnv.KV.get(`config:${k}`);
+            result[k] = v ? (k.includes('KEY') || k.includes('TOKEN') ? '***已配置***' : v) : '未配置';
+          }
+          return jsonResponse(result);
+        }
+        return jsonResponse({ error: '需要 cron 参数: recommend / library / discounts / config' }, 400);
+      } catch (e) {
+        return jsonResponse({ error: e.message, stack: e.stack?.split('\n').slice(0,3) }, 500);
+      }
+    }
+
     return env.ASSETS.fetch(request);
   },
 

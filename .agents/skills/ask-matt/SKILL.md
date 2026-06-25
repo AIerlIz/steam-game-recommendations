@@ -1,8 +1,7 @@
 ---
 name: ask-matt
 description: Ask which skill or flow fits your situation. A router over the user-invoked skills in this repo.
-license: MIT
-compatibility: opencode
+disable-model-invocation: true
 ---
 
 # Ask Matt

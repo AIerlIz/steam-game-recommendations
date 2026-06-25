@@ -1,8 +1,7 @@
 ---
 name: implement
 description: "Implement a piece of work based on a PRD or set of issues."
-license: MIT
-compatibility: opencode
+disable-model-invocation: true
 ---
 
 Implement the work described by the user in the PRD or issues.

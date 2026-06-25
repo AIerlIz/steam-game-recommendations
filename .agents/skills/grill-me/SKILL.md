@@ -1,8 +1,7 @@
 ---
 name: grill-me
 description: A relentless interview to sharpen a plan or design.
-license: MIT
-compatibility: opencode
+disable-model-invocation: true
 ---
 
 Run a `/grilling` session.
