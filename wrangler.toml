@@ -5,10 +5,9 @@ compatibility_date = "2024-10-01"
 assets = { directory = "./public", binding = "ASSETS" }
 
 # KV绑定
-#[[kv_namespaces]]
-#binding = "KV"
-#id = ""
-#preview_id = ""
+[[kv_namespaces]]
+binding = "KV"
+
 [observability]
 enabled = false
 head_sampling_rate = 1
@@ -28,4 +27,9 @@ head_sampling_rate = 1
 crons = ["0 3 * * *", "30 3 * * 1", "0 4 * * *"]
 
 [env.production]
+[[env.production.kv_namespaces]]
+binding = "KV"
+
 [env.preview]
+[[env.preview.kv_namespaces]]
+binding = "KV"
