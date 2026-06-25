@@ -150,6 +150,15 @@ export async function getConfig(env, key, defaultValue = '') {
   return (await env.KV.get(`config:${key}`)) || defaultValue;
 }
 
+export async function getTelegramConfig(env) {
+  const data = await env.KV.get('config:TELEGRAM', 'json');
+  return data || {};
+}
+
+export async function setTelegramConfig(env, { token, adminChatId }) {
+  await env.KV.put('config:TELEGRAM', JSON.stringify({ token, adminChatId }));
+}
+
 export async function getAllConfig(env) {
   const list = await env.KV.list({ prefix: 'config:' });
   const config = {};

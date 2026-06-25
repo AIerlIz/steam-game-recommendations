@@ -1,4 +1,4 @@
-import { getConfig } from './steam.js';
+import { getTelegramConfig } from './steam.js';
 
 // ========== Telegram API ==========
 
@@ -61,7 +61,7 @@ function searchLocal(games, query) {
 }
 
 async function handleSearch(query, chatId, env) {
-  const token = await getConfig(env, 'TELEGRAM_BOT_TOKEN');
+  const token = (await getTelegramConfig(env)).token;
   if (!token) return;
   if (query.length < 2) {
     await tgCall(token, 'sendMessage', { chat_id: chatId, text: '⚠️ 至少输入 2 个字符' });
@@ -220,7 +220,7 @@ async function sendGameList(token, chatId, items, query, cnMap, enMap, isSteamSe
 // ========== Commands ==========
 
 async function isAdmin(chatId, env) {
-  const adminId = await getConfig(env, 'TELEGRAM_ADMIN_CHAT_ID');
+  const adminId = (await getTelegramConfig(env)).adminChatId || '';
   return String(chatId) === adminId;
 }
 
@@ -337,7 +337,7 @@ async function cmdStats(token, chatId, env) {
 }
 
 async function cmdSubscribe(args, chatId, env) {
-  const token = await getConfig(env, 'TELEGRAM_BOT_TOKEN');
+  const token = (await getTelegramConfig(env)).token;
   if (!token || !args) {
     await tgCall(token, 'sendMessage', { chat_id: chatId, text: '请指定游戏名，如 /subscribe 黑神话:悟空' });
     return;
@@ -376,7 +376,7 @@ async function cmdSubscribe(args, chatId, env) {
 }
 
 async function cmdUnsubscribe(args, chatId, env) {
-  const token = await getConfig(env, 'TELEGRAM_BOT_TOKEN');
+  const token = (await getTelegramConfig(env)).token;
   const key = `sub:${chatId}`;
   const subs = (await env.KV.get(key, 'json')) || [];
 
@@ -406,7 +406,7 @@ async function cmdUnsubscribe(args, chatId, env) {
 }
 
 async function cmdList(chatId, env) {
-  const token = await getConfig(env, 'TELEGRAM_BOT_TOKEN');
+  const token = (await getTelegramConfig(env)).token;
   const subs = (await env.KV.get(`sub:${chatId}`, 'json')) || [];
 
   if (!subs.length) {
@@ -437,7 +437,7 @@ async function cmdList(chatId, env) {
 }
 
 async function cmdRun(action, chatId, env) {
-  const token = await getConfig(env, 'TELEGRAM_BOT_TOKEN');
+  const token = (await getTelegramConfig(env)).token;
   if (!(await isAdmin(chatId, env))) {
     await tgCall(token, 'sendMessage', { chat_id: chatId, text: '⛔ 仅管理员可用' });
     return;
@@ -465,7 +465,7 @@ async function cmdRun(action, chatId, env) {
 }
 
 async function handleCallbackQuery(cb, env) {
-  const token = await getConfig(env, 'TELEGRAM_BOT_TOKEN');
+  const token = (await getTelegramConfig(env)).token;
   if (!token) return;
   const data = cb.data || '';
   const chatId = cb.message?.chat?.id;
@@ -489,7 +489,7 @@ async function handleCallbackQuery(cb, env) {
 // ========== Webhook ==========
 
 export async function handleWebhook(request, env) {
-  const token = await getConfig(env, 'TELEGRAM_BOT_TOKEN');
+  const token = (await getTelegramConfig(env)).token;
   if (!token) return new Response('Bot not configured', { status: 200 });
 
   if (request.method !== 'POST') {
@@ -591,8 +591,8 @@ export async function handleWebhook(request, env) {
 // ========== Notifications ==========
 
 export async function notify(env, text) {
-  const token = await getConfig(env, 'TELEGRAM_BOT_TOKEN');
-  const adminId = await getConfig(env, 'TELEGRAM_ADMIN_CHAT_ID');
+  const token = (await getTelegramConfig(env)).token;
+  const adminId = (await getTelegramConfig(env)).adminChatId || '';
   if (!token || !adminId) return;
   await tgCall(token, 'sendMessage', {
     chat_id: parseInt(adminId),
@@ -636,7 +636,7 @@ export async function notifyLibraryResult(env, count, hours) {
 // ========== Discount Check ==========
 
 export async function checkDiscounts(env) {
-  const token = await getConfig(env, 'TELEGRAM_BOT_TOKEN');
+  const token = (await getTelegramConfig(env)).token;
   if (!token) return;
 
   // List all subscription keys

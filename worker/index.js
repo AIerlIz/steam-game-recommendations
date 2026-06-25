@@ -199,6 +199,18 @@ td{font-size:14px}
       </div>
     </div>
     <div class="card">
+      <h3 style="margin-bottom:16px;font-size:16px">Telegram Bot</h3>
+      <div class="form-row">
+        <input type="password" id="tg-token" placeholder="Bot Token（从 @BotFather 获取）">
+        <input type="text" id="tg-admin" placeholder="Admin Chat ID">
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="saveTelegram()">保存配置</button>
+        <button class="btn btn-primary" onclick="setWebhook()">设置 Webhook</button>
+      </div>
+      <p id="tg-status" style="margin-top:8px;font-size:13px;color:#94a3b8"></p>
+    </div>
+    <div class="card">
       <h3 style="margin-bottom:16px;font-size:16px">配置列表</h3>
       <div id="config-loading" class="loading">加载中...</div>
       <div id="config-empty" class="empty hidden">暂无配置</div>
@@ -210,6 +222,7 @@ td{font-size:14px}
 </div>
 <div id="toast" class="toast"></div>
 <script>
+const HIDDEN_KEYS = ['TELEGRAM'];
 const SENSITIVE_KEYS = ['STEAM_API_KEY','LLM_API_KEY'];
 
 async function api(path, opts = {}) {
@@ -274,7 +287,18 @@ async function loadConfigs() {
   const keys = Object.keys(configs);
   if (!keys.length) { empty.classList.remove('hidden'); return; }
   tableWrap.classList.remove('hidden');
+  // Populate Telegram fields
+  const tgRaw = configs['TELEGRAM'];
+  if (tgRaw) {
+    try {
+      const tg = JSON.parse(tgRaw.value);
+      document.getElementById('tg-token').value = tg.token || '';
+      document.getElementById('tg-admin').value = tg.adminChatId || '';
+    } catch(e) {}
+  }
+
   for (const key of keys) {
+    if (HIDDEN_KEYS.includes(key)) continue;
     const tr = document.createElement('tr');
     const isSensitive = SENSITIVE_KEYS.includes(key);
     const masked = isSensitive ? '••••••••' : configs[key].value;
@@ -323,6 +347,34 @@ async function deleteConfig(key) {
     loadConfigs();
   } else {
     toast('删除失败', 'error');
+  }
+}
+
+async function saveTelegram() {
+  const token = document.getElementById('tg-token').value.trim();
+  const adminChatId = document.getElementById('tg-admin').value.trim();
+  if (!token || !adminChatId) { toast('请填写完整', 'error'); return; }
+  const resp = await api('/admin/api/config', {
+    method: 'PUT',
+    body: JSON.stringify({ key: 'TELEGRAM', value: JSON.stringify({ token, adminChatId }) }),
+  });
+  if (resp.ok) {
+    toast('Telegram 配置已保存');
+    document.getElementById('tg-status').textContent = '✅ 已保存';
+    loadConfigs();
+  } else {
+    toast('保存失败', 'error');
+  }
+}
+
+async function setWebhook() {
+  const resp = await api('/api/bot/set-webhook');
+  const data = await resp.json();
+  if (data.ok) {
+    toast('Webhook 设置成功');
+    document.getElementById('tg-status').textContent = '✅ Webhook 已设置';
+  } else {
+    toast('Webhook 设置失败: ' + (data.description || '未知错误'), 'error');
   }
 }
 </script>
@@ -375,7 +427,8 @@ export default {
     }
 
     if (path === '/api/bot/set-webhook') {
-      const token = (await env.KV.get('config:TELEGRAM_BOT_TOKEN'));
+      const tgConfig = await env.KV.get('config:TELEGRAM', 'json');
+      const token = tgConfig?.token;
       if (!token) return new Response('Bot not configured', { status: 200 });
       const webhookUrl = `${url.protocol}//${url.host}/api/bot/webhook`;
       const resp = await fetch(
