@@ -1,9 +1,9 @@
-import { fetchSteamDetails, fetchReview, batchFetch, filterLibraryGames, buildGamesOutput, getConfig } from '../lib/steam.js';
+import { KV_KEYS, fetchSteamDetails, fetchReview, batchFetch, filterLibraryGames, buildGamesOutput, getConfig } from '../lib/steam.js';
 
 export async function fillDetails(env) {
   const lang = await getConfig(env, 'STEAM_LANG', 'schinese');
 
-  const data = await env.KV.get('data:library', 'json');
+  const data = await env.KV.get(KV_KEYS.DATA_LIBRARY, 'json');
   const games = data?.games || [];
   if (!games.length) {
     console.log('library.json 不存在或为空');
@@ -50,6 +50,6 @@ export async function fillDetails(env) {
   if (filteredCount > 0) console.log(`过滤掉 ${filteredCount} 款低时长游戏`);
 
   const output = buildGamesOutput(filteredGames);
-  await env.KV.put('data:library', JSON.stringify(output));
+  await env.KV.put(KV_KEYS.DATA_LIBRARY, JSON.stringify(output));
   console.log(`✓ 已更新 ${updated} 款, 保存到 library (${filteredGames.length} 款)`);
 }

@@ -90,11 +90,11 @@ const PROVIDERS = {
   qwen: QwenLLM,
 };
 
-export function createLLM(env) {
-  const provider = (env.LLM_PROVIDER || '').toLowerCase();
-  if (!provider) throw new Error('未配置 LLM_PROVIDER');
-  if (!env.LLM_API_KEY) throw new Error('未配置 LLM_API_KEY');
-  const cls = PROVIDERS[provider];
+export function createLLM({ provider, apiKey, apiBase, model }) {
+  const p = (provider || '').toLowerCase();
+  if (!p) throw new Error('未配置 LLM_PROVIDER');
+  if (!apiKey) throw new Error('未配置 LLM_API_KEY');
+  const cls = PROVIDERS[p];
   if (!cls) throw new Error(`不支持的 LLM 提供商: ${provider}`);
-  return new cls(env.LLM_API_KEY, env.LLM_API_BASE, env.LLM_MODEL);
+  return new cls(apiKey, apiBase, model);
 }

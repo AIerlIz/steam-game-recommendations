@@ -1,10 +1,10 @@
-import { fetchSteamDetails, fetchReview, getConfig, batchFetch } from '../lib/steam.js';
+import { KV_KEYS, fetchSteamDetails, fetchReview, getConfig, batchFetch } from '../lib/steam.js';
 
 export async function fetchSteam(env) {
   const lang = await getConfig(env, 'STEAM_LANG', 'schinese');
 
-  const gamesData = await env.KV.get('data:games', 'json');
-  const existingData = await env.KV.get('data:games_detail', 'json');
+  const gamesData = await env.KV.get(KV_KEYS.DATA_GAMES, 'json');
+  const existingData = await env.KV.get(KV_KEYS.DATA_GAMES_DETAIL, 'json');
 
   const existingDetails = {};
   let totalOwned = 0;
@@ -48,6 +48,6 @@ export async function fetchSteam(env) {
   }
 
   const allGames = [...Object.values(existingDetails), ...Object.values(newDetails)];
-  await env.KV.put('data:games_detail', JSON.stringify({ games: allGames, total_owned: totalOwned }));
+  await env.KV.put(KV_KEYS.DATA_GAMES_DETAIL, JSON.stringify({ games: allGames, total_owned: totalOwned }));
   console.log(`✓ games_detail 已更新 (${allGames.length} 款, 新增 ${Object.keys(newDetails).length} 款)`);
 }

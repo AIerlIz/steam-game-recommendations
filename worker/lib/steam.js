@@ -1,3 +1,20 @@
+export const KV_KEYS = {
+  DATA_GAMES: 'data:games',
+  DATA_GAMES_DETAIL: 'data:games_detail',
+  DATA_LIBRARY: 'data:library',
+  CONFIG_TELEGRAM: 'config:TELEGRAM',
+  CONFIG_PREFIX: 'config:',
+  SUB_PREFIX: 'sub:',
+  LASTSEARCH_PREFIX: 'lastsearch:',
+  ADMIN_SESSION_PREFIX: 'admin:session:',
+  NOTIFIED_SUFFIX: '_notified',
+  configKey: (key) => `config:${key}`,
+  subKey: (chatId) => `sub:${chatId}`,
+  lastSearchKey: (chatId) => `lastsearch:${chatId}`,
+  adminSessionKey: (id) => `admin:session:${id}`,
+  notifiedKey: (subKey) => `${subKey}_notified`,
+};
+
 export function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
@@ -23,14 +40,14 @@ export async function requestWithRetry(url, maxRetries = 3, delay = 1.0, opts = 
 }
 
 export function loadGamesJson(env) {
-  return env.KV.get('data:games', 'json').then(data => data || { games: [], total_owned: 0 });
+  return env.KV.get(KV_KEYS.DATA_GAMES, 'json').then(data => data || { games: [], total_owned: 0 });
 }
 
 export function saveGamesJson(env, data) {
-  return env.KV.put('data:games', JSON.stringify(data));
+  return env.KV.put(KV_KEYS.DATA_GAMES, JSON.stringify(data));
 }
 
-export function filterLibraryGames(games, detailMap = null) {
+export function filterLibraryGames(games, detailMap = null, opts = {}) {
   let softwareCount = 0;
   if (detailMap) {
     const before = games.length;
@@ -41,7 +58,8 @@ export function filterLibraryGames(games, detailMap = null) {
     softwareCount = before - games.length;
   }
   const totalPlaytime = games.reduce((s, g) => s + (g.playtime_hours || 0), 0);
-  const threshold = totalPlaytime * 0.001;
+  const thresholdFactor = opts.thresholdFactor ?? 0.001;
+  const threshold = totalPlaytime * thresholdFactor;
   const before = games.length;
   games = games.filter(g => (g.playtime_hours || 0) >= threshold);
   const filteredCount = before - games.length;
@@ -147,23 +165,23 @@ export async function batchFetch(items, fetchFn, { maxWorkers = 2, delay = 0.3, 
 }
 
 export async function getConfig(env, key, defaultValue = '') {
-  return (await env.KV.get(`config:${key}`)) || defaultValue;
+  return (await env.KV.get(KV_KEYS.configKey(key))) || defaultValue;
 }
 
 export async function getTelegramConfig(env) {
-  const data = await env.KV.get('config:TELEGRAM', 'json');
+  const data = await env.KV.get(KV_KEYS.CONFIG_TELEGRAM, 'json');
   return data || {};
 }
 
 export async function setTelegramConfig(env, { token, adminChatId }) {
-  await env.KV.put('config:TELEGRAM', JSON.stringify({ token, adminChatId }));
+  await env.KV.put(KV_KEYS.CONFIG_TELEGRAM, JSON.stringify({ token, adminChatId }));
 }
 
 export async function getAllConfig(env) {
-  const list = await env.KV.list({ prefix: 'config:' });
+  const list = await env.KV.list({ prefix: KV_KEYS.CONFIG_PREFIX });
   const config = {};
   for (const k of list.keys) {
-    config[k.name.replace('config:', '')] = await env.KV.get(k.name);
+    config[k.name.replace(KV_KEYS.CONFIG_PREFIX, '')] = await env.KV.get(k.name);
   }
   return config;
 }

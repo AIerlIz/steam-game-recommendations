@@ -1,4 +1,4 @@
-import { getSteamId, getOwnedGames, fetchSteamDetails, fetchReview, batchFetch, filterLibraryGames, buildGamesOutput, getConfig } from '../lib/steam.js';
+import { KV_KEYS, getSteamId, getOwnedGames, fetchSteamDetails, fetchReview, batchFetch, filterLibraryGames, buildGamesOutput, getConfig } from '../lib/steam.js';
 
 export async function fetchLibrary(env) {
   const steamApiKey = await getConfig(env, 'STEAM_API_KEY');
@@ -47,7 +47,7 @@ export async function fetchLibrary(env) {
   if (filteredCount > 0) console.log(`过滤掉 ${filteredCount} 款低时长游戏`);
 
   const output = buildGamesOutput(filteredGames);
-  await env.KV.put('data:library', JSON.stringify(output));
+  await env.KV.put(KV_KEYS.DATA_LIBRARY, JSON.stringify(output));
   const totalPlaytime = filteredGames.reduce((s, g) => s + (g.playtime_hours || 0), 0);
   console.log(`✓ library.json 已生成 (${filteredGames.length} 款游戏, ${totalPlaytime.toFixed(1)} 小时)`);
 }

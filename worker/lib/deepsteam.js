@@ -1,5 +1,5 @@
 import { createLLM } from './llm.js';
-import { getSteamId, getOwnedGames, saveGamesJson, getConfig } from './steam.js';
+import { KV_KEYS, getSteamId, getOwnedGames, saveGamesJson, getConfig } from './steam.js';
 
 const GENRE_CLUSTERS = {
   'RPG/ARPG': ['rpg', 'action rpg', 'arpg', 'jrpg', 'crpg', 'mmorpg', 'dungeon crawler',
@@ -323,8 +323,47 @@ export function filterSeriesDeepsteam(recommendations, ownedGames) {
   return filtered;
 }
 
+export async function recommendAlgo(ownedGames, excludeAppids, profile, llmClient, k = 200) {
+  const recommendations = await aiAnalyzeAndRecommend(ownedGames, excludeAppids, profile, llmClient, k);
+  if (!recommendations?.length) throw new Error('没有通过过滤的新推荐游戏');
+
+  for (const rec of recommendations) {
+    rec.score = calculateWeightedScore(rec, ownedGames, profile, recommendations);
+  }
+  recommendations.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  return filterSeriesDeepsteam(recommendations, ownedGames);
+}
+
+export async function saveRecs(env, recs, totalOwned) {
+  const detailData = await env.KV.get(KV_KEYS.DATA_GAMES_DETAIL, 'json');
+  const existingAppidSet = new Set();
+  if (detailData?.games) {
+    for (const g of detailData.games) {
+      if (g.appid) existingAppidSet.add(g.appid);
+    }
+  }
+
+  const newEntries = [];
+  for (const rec of recs) {
+    if (rec.appid && !existingAppidSet.has(rec.appid)) {
+      newEntries.push({
+        appid: rec.appid,
+        reason: rec.reason || '',
+        score: Math.round((rec.score || 0) * 10000) / 10000,
+      });
+    }
+  }
+
+  await saveGamesJson(env, {
+    games: newEntries,
+    total_owned: totalOwned,
+  });
+  return newEntries;
+}
+
 export async function getExistingGames(env) {
-  const data = await env.KV.get('data:games_detail', 'json');
+  const data = await env.KV.get(KV_KEYS.DATA_GAMES_DETAIL, 'json');
   if (!data?.games) return new Set();
   return new Set(data.games.map(g => g.appid).filter(Boolean));
 }
@@ -344,9 +383,8 @@ export function parseLlmResponse(response) {
   return {};
 }
 
-export async function aiAnalyzeAndRecommend(ownedGames, existingAppids, profile, llmConfig) {
+export async function aiAnalyzeAndRecommend(ownedGames, existingAppids, profile, llmClient, k = 200) {
   const sortedGames = [...ownedGames].sort((a, b) => (b.playtime_hours || 0) - (a.playtime_hours || 0));
-  const k = parseFloat(llmConfig.RECOMMEND_K || '200');
   const topN = Math.max(5, Math.round(50 * (1 - Math.E ** (-sortedGames.length / k))));
   const topGames = sortedGames.slice(0, topN);
 
@@ -410,7 +448,6 @@ ${existingText}
 4. 使用官方中文名
 5. 推荐7-10款游戏以覆盖多条兴趣线`;
 
-  const llm = createLLM(llmConfig);
   let response = '';
   let lastError = null;
   for (let attempt = 0; attempt <= 2; attempt++) {
@@ -470,18 +507,19 @@ export async function steamSearchByName(name) {
   return null;
 }
 
-export async function autoRecommend(env) {
+export async function recommend(env) {
   const steamApiKey = await getConfig(env, 'STEAM_API_KEY');
   const steamUserId = await getConfig(env, 'STEAM_USER_ID');
   if (!steamApiKey || !steamUserId) throw new Error('未配置 STEAM_API_KEY 或 STEAM_USER_ID');
 
   const llmConfig = {
-    LLM_PROVIDER: await getConfig(env, 'LLM_PROVIDER'),
-    LLM_API_KEY: await getConfig(env, 'LLM_API_KEY'),
-    LLM_API_BASE: await getConfig(env, 'LLM_API_BASE'),
-    LLM_MODEL: await getConfig(env, 'LLM_MODEL'),
-    RECOMMEND_K: await getConfig(env, 'RECOMMEND_K'),
+    provider: await getConfig(env, 'LLM_PROVIDER'),
+    apiKey: await getConfig(env, 'LLM_API_KEY'),
+    apiBase: await getConfig(env, 'LLM_API_BASE'),
+    model: await getConfig(env, 'LLM_MODEL'),
   };
+  const k = parseFloat((await getConfig(env, 'RECOMMEND_K')) || '200');
+  const llmClient = createLLM(llmConfig);
 
   console.log('获取 Steam ID...');
   const steamId = await getSteamId(steamApiKey, steamUserId);
@@ -493,7 +531,7 @@ export async function autoRecommend(env) {
   console.log(`拥有游戏: ${ownedGamesData.length} 款`);
 
   console.log('构建多兴趣画像...');
-  const libraryData = await env.KV.get('data:library', 'json');
+  const libraryData = await env.KV.get(KV_KEYS.DATA_LIBRARY, 'json');
   const libraryGenres = {};
   if (libraryData?.games) {
     for (const g of libraryData.games) {
@@ -508,18 +546,8 @@ export async function autoRecommend(env) {
   const ownedAppids = new Set(ownedGamesData.map(g => g.appid));
   const excludeAppids = new Set([...existingGames, ...ownedAppids]);
 
-  console.log('LLM分析并推荐...');
-  const recommendations = await aiAnalyzeAndRecommend(ownedGamesData, excludeAppids, profile, llmConfig);
-  if (!recommendations?.length) throw new Error('没有通过过滤的新推荐游戏');
-
-  console.log('加权融合排序...');
-  for (const rec of recommendations) {
-    rec.score = calculateWeightedScore(rec, ownedGamesData, profile, recommendations);
-  }
-  recommendations.sort((a, b) => (b.score || 0) - (a.score || 0));
-
-  console.log('系列感知过滤...');
-  const filteredRecs = filterSeriesDeepsteam(recommendations, ownedGamesData);
+  console.log('推荐算法(LLM+评分+系列过滤)...');
+  const filteredRecs = await recommendAlgo(ownedGamesData, excludeAppids, profile, llmClient, k);
 
   console.log('验证appid...');
   const validated = [];
@@ -540,31 +568,8 @@ export async function autoRecommend(env) {
   }
   if (!validated.length) throw new Error('所有appid验证失败');
 
-  console.log('更新 games.json...');
-  const detailData = await env.KV.get('data:games_detail', 'json');
-  const existingAppidSet = new Set();
-  if (detailData?.games) {
-    for (const g of detailData.games) {
-      if (g.appid) existingAppidSet.add(g.appid);
-    }
-  }
-
   const newRecs = validated.slice(0, 7);
-  const newEntries = [];
-  for (const rec of newRecs) {
-    if (rec.appid && !existingAppidSet.has(rec.appid)) {
-      newEntries.push({
-        appid: rec.appid,
-        reason: rec.reason || '',
-        score: Math.round((rec.score || 0) * 10000) / 10000,
-      });
-    }
-  }
-
-  await saveGamesJson(env, {
-    games: newEntries,
-    total_owned: apiGameCount || ownedGamesData.length,
-  });
-  console.log(`已写入 ${newEntries.length} 个新appid`);
+  console.log('保存推荐结果...');
+  await saveRecs(env, newRecs, apiGameCount || ownedGamesData.length);
   return newRecs;
 }
