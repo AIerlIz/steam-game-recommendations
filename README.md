@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" width="100" height="100" alt="GameSeeker">
+  <img src="public/assets/logo.svg" width="100" height="100" alt="GameSeeker">
 </p>
 
 <h1 align="center">识游 · GameSeeker</h1>
