@@ -2,17 +2,40 @@ import { createLLM } from './llm.js';
 import { getSteamId, getOwnedGames, saveGamesJson, getConfig } from './steam.js';
 
 const GENRE_CLUSTERS = {
-  'RPG/ARPG': ['rpg', 'action rpg', 'arpg', '动作角色扮演', '角色扮演'],
-  'FPS/射击': ['fps', 'shooter', 'first-person', '射击', '第一人称'],
-  '策略/模拟': ['strategy', 'simulation', 'turn-based', '策略', '模拟'],
-  '冒险/叙事': ['adventure', 'narrative', 'story', '冒险', '叙事'],
-  '恐怖/生存': ['horror', 'survival', '恐怖', '生存'],
-  '动作/格斗': ['action', 'fighting', 'beat', '动作', '格斗'],
-  '独立/创意': ['indie', 'pixel', 'roguelike', '独立', '像素'],
-  '沙盒/建造': ['sandbox', 'building', 'crafting', '沙盒', '建造'],
-  '竞速/体育': ['racing', 'sports', '竞速', '体育'],
-  '休闲/解谜': ['casual', 'puzzle', '休闲', '解谜'],
+  'RPG/ARPG': ['rpg', 'action rpg', 'arpg', 'jrpg', 'crpg', 'mmorpg', 'dungeon crawler',
+                '角色扮演', '动作角色扮演', '动作rpg', '日式角色扮演', '类魂'],
+  'FPS/射击': ['fps', 'shooter', 'first-person', 'hero shooter', 'tactical shooter',
+               '射击', '第一人称', '第一人称射击', '第三人称射击', '射击游戏'],
+  '策略/模拟': ['strategy', 'simulation', 'rts', 'turn-based', 'turn based', '4x', 'grand strategy',
+                'tower defense', 'moba', 'life sim', 'dating sim', 'farming sim', 'choices matter',
+                '策略', '模拟', '回合制', '即时战略', '回合制策略', '塔防', '恋爱模拟'],
+  '冒险/叙事': ['adventure', 'narrative', 'visual novel', 'interactive fiction', 'walking simulator',
+                'point & click', 'open world', 'open-world', 'sci-fi', 'atmospheric',
+                '冒险', '叙事', '剧情', '开放世界', '视觉小说', '探索', '科幻', '互动小说'],
+  '恐怖/生存': ['horror', 'survival', 'zombies', 'psychological horror', 'lovecraftian',
+                'post-apocalyptic', 'post apocalyptic',
+                '恐怖', '生存', '僵尸', '末日', '后末日', '心理恐怖'],
+  '动作/格斗': ['action', 'fighting', 'beat \'em up', 'hack and slash', 'stealth', 'metroidvania',
+                'bullet hell', 'souls-like', 'soulslike', 'platformer',
+                '动作', '格斗', '清版', '类银河战士恶魔城', '平台'],
+  '独立/创意': ['indie', 'roguelike', 'roguelite', 'rogue-like', 'rogue-lite',
+                '独立', '肉鸽', '类rogue', '像素', '创意'],
+  '沙盒/建造': ['sandbox', 'building', 'crafting', 'base building', 'city builder',
+                'colony sim', 'voxel', 'automation', 'open world survival craft',
+                '沙盒', '建造', '城市建设', '殖民模拟', '自动化'],
+  '竞速/体育': ['racing', 'sports', 'vehicular combat',
+                '竞速', '体育', '赛车', '驾驶', '足球', '篮球'],
+  '休闲/解谜': ['casual', 'puzzle', 'card game', 'board game', 'hidden object', 'idle', 'clicker',
+                'match 3', 'word game', 'rhythm',
+                '休闲', '解谜', '卡牌', '棋盘', '消除', '三消', '益智', '音乐'],
 };
+
+const GENRE_TO_CLUSTER = {};
+for (const [cluster, keywords] of Object.entries(GENRE_CLUSTERS)) {
+  for (const kw of keywords) {
+    GENRE_TO_CLUSTER[kw.toLowerCase()] = cluster;
+  }
+}
 
 const SERIES_PATTERNS = [
   /(Civilization\s*\d*)/i,
@@ -84,11 +107,9 @@ const SERIES_PATTERNS = [
   /(Star Wars.*)/i,
   /(Alien\s*.*)/i,
   /(Predator.*)/i,
-  /([A-Za-z][A-Za-z .'\-]{2,})\s*[IVXLCDM]+\b/i,
-  /([A-Za-z][A-Za-z .'\-]{2,})\s*\d+/i,
 ];
 
-export function buildUserProfile(ownedGames) {
+export function buildUserProfile(ownedGames, genreMap = {}) {
   if (!ownedGames?.length) {
     return { clusters: {}, top_genres: [], idf_weights: {}, total_hours: 0, cluster_strength: {} };
   }
@@ -104,19 +125,33 @@ export function buildUserProfile(ownedGames) {
 
   const clusters = {};
   for (const game of ownedGames) {
-    const nameLower = (game.name || '').toLowerCase();
-    let matched = false;
-    for (const [clusterName, keywords] of Object.entries(GENRE_CLUSTERS)) {
-      for (const kw of keywords) {
-        if (nameLower.includes(kw)) {
-          (clusters[clusterName] = clusters[clusterName] || []).push(game);
-          matched = true;
-          break;
-        }
+    const genres = genreMap[game.appid] || [];
+    let classified = false;
+
+    for (const genre of genres) {
+      const cluster = GENRE_TO_CLUSTER[genre.toLowerCase()];
+      if (cluster) {
+        (clusters[cluster] = clusters[cluster] || []).push(game);
+        classified = true;
+        break;
       }
-      if (matched) break;
     }
-    if (!matched) {
+
+    if (!classified) {
+      const nameLower = (game.name || '').toLowerCase();
+      for (const [clusterName, keywords] of Object.entries(GENRE_CLUSTERS)) {
+        for (const kw of keywords) {
+          if (nameLower.includes(kw)) {
+            (clusters[clusterName] = clusters[clusterName] || []).push(game);
+            classified = true;
+            break;
+          }
+        }
+        if (classified) break;
+      }
+    }
+
+    if (!classified) {
       const hours = game.playtime_hours || 0;
       if (hours > 100) (clusters['核心偏好'] = clusters['核心偏好'] || []).push(game);
       else if (hours > 20) (clusters['次要偏好'] = clusters['次要偏好'] || []).push(game);
@@ -218,12 +253,7 @@ export function calculateWeightedScore(recommendation, ownedGames, profile, allR
   if (recommendation.review_score) qualityScore = recommendation.review_score / 10;
   else if (recommendation.rating) qualityScore = recommendation.rating / 10;
 
-  const rrfK = 60;
-  const rrfScore = (
-    (1.0 / (rrfK + 1)) * tagScore * 1.2 +
-    (1.0 / (rrfK + 1)) * heatScore * 1.0 +
-    (1.0 / (rrfK + 1)) * qualityScore * 0.8
-  );
+  const baseScore = tagScore * 1.2 + heatScore * 1.0 + qualityScore * 0.8;
 
   const owners = recommendation.owners || 0;
   let authorityBoost = 1.0;
@@ -249,7 +279,7 @@ export function calculateWeightedScore(recommendation, ownedGames, profile, allR
     if (matchedClusters >= 2) diversityBoost = 1.1;
   }
 
-  return rrfScore * authorityBoost * recencyBoost * diversityBoost;
+  return baseScore * authorityBoost * recencyBoost * diversityBoost;
 }
 
 export function filterSeriesDeepsteam(recommendations, ownedGames) {
@@ -420,17 +450,23 @@ ${existingText}
 }
 
 export async function steamSearchByName(name) {
-  const url = `https://store.steampowered.com/api/storesearch?term=${encodeURIComponent(name)}&l=schinese&cc=cn`;
-  try {
-    const resp = await fetch(url, { timeout: 10000 });
-    if (resp.ok) {
+  const clean = encodeURIComponent(name);
+  const urls = [
+    `https://store.steampowered.com/api/storesearch?term=${clean}&l=schinese&cc=cn`,
+    `https://store.steampowered.com/api/storesearch?term=${clean}&l=english&cc=us`,
+    `https://store.steampowered.com/api/storesearch?term=${clean}&l=english&cc=cn`,
+  ];
+  for (const url of urls) {
+    try {
+      const resp = await fetch(url, { timeout: 10000 });
+      if (!resp.ok) continue;
       const data = await resp.json();
       const items = data?.items || [];
-      if (items.length) {
-        return { appid: items[0].id, name: items[0].name || '', type: items[0].type || '' };
+      if (items.length && items[0].type === 'app') {
+        return { appid: items[0].id, name: items[0].name || '', type: items[0].type };
       }
-    }
-  } catch {}
+    } catch {}
+  }
   return null;
 }
 
@@ -457,7 +493,14 @@ export async function autoRecommend(env) {
   console.log(`拥有游戏: ${ownedGamesData.length} 款`);
 
   console.log('构建多兴趣画像...');
-  const profile = buildUserProfile(ownedGamesData);
+  const libraryData = await env.KV.get('data:library', 'json');
+  const libraryGenres = {};
+  if (libraryData?.games) {
+    for (const g of libraryData.games) {
+      if (g.appid && g.genres) libraryGenres[g.appid] = g.genres;
+    }
+  }
+  const profile = buildUserProfile(ownedGamesData, libraryGenres);
   console.log(`主要品类: ${profile.top_genres?.join(', ')}`);
 
   console.log('检查已存在游戏...');
@@ -471,9 +514,9 @@ export async function autoRecommend(env) {
 
   console.log('加权融合排序...');
   for (const rec of recommendations) {
-    rec.rrf_score = calculateWeightedScore(rec, ownedGamesData, profile, recommendations);
+    rec.score = calculateWeightedScore(rec, ownedGamesData, profile, recommendations);
   }
-  recommendations.sort((a, b) => (b.rrf_score || 0) - (a.rrf_score || 0));
+  recommendations.sort((a, b) => (b.score || 0) - (a.score || 0));
 
   console.log('系列感知过滤...');
   const filteredRecs = filterSeriesDeepsteam(recommendations, ownedGamesData);
@@ -513,7 +556,7 @@ export async function autoRecommend(env) {
       newEntries.push({
         appid: rec.appid,
         reason: rec.reason || '',
-        rrf_score: Math.round((rec.rrf_score || 0) * 10000) / 10000,
+        score: Math.round((rec.score || 0) * 10000) / 10000,
       });
     }
   }

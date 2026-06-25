@@ -24,7 +24,7 @@ export async function fetchSteam(env) {
   for (const item of gamesData.games) {
     if (typeof item === 'object' && item.appid) {
       if (!existingDetails[item.appid]) {
-        appidInfo[item.appid] = { reason: item.reason || '', rrf_score: item.rrf_score || 0 };
+        appidInfo[item.appid] = { reason: item.reason || '', score: item.score || 0 };
       }
     }
   }
@@ -41,7 +41,7 @@ export async function fetchSteam(env) {
     const result = detailsMap[parseInt(aid)];
     if (result) {
       if (info.reason) result.reason = info.reason;
-      if (info.rrf_score) result.rrf_score = info.rrf_score;
+      if (info.score) result.score = info.score;
       result.review = reviewMap[parseInt(aid)] || null;
       newDetails[result.appid] = result;
     }
