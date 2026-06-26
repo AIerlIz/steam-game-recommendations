@@ -21,12 +21,103 @@ async function getBotToken(env: Env): Promise<string | undefined> {
   return tgData.token
 }
 
+// ---------- Admin Auth ----------
+
+function parseCookies(header: string | null): Record<string, string> {
+  const result: Record<string, string> = {}
+  if (!header) return result
+  for (const part of header.split(';')) {
+    const eq = part.indexOf('=')
+    if (eq > 0) result[part.slice(0, eq).trim()] = part.slice(eq + 1).trim()
+  }
+  return result
+}
+
+async function validateAdminSession(db: D1Database, cookie: string | undefined): Promise<boolean> {
+  if (!cookie) return false
+  const now = Math.floor(Date.now() / 1000)
+  const row = await db.prepare('SELECT id FROM sessions WHERE id = ? AND user_id = ? AND expires_at > ?')
+    .bind(cookie, 'admin', now).first()
+  return !!row
+}
+
 // ---------- Main Handler ----------
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url)
     const path = url.pathname
+
+    if (path === '/admin' || path === '/admin/') {
+      return env.ASSETS.fetch(new Request(`${url.origin}/admin.html`, request))
+    }
+
+    // Admin login
+    if (path === '/admin/login' && request.method === 'POST') {
+      try {
+        const { password } = await request.json() as { password?: string }
+        if (!password || password !== env.ADMIN_PASSWORD) {
+          return jsonResponse({ error: '密码错误' }, 401)
+        }
+        const sessionId = crypto.randomUUID()
+        const now = Math.floor(Date.now() / 1000)
+        await env.DB.prepare('INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)')
+          .bind(sessionId, 'admin', now, now + 86400).run()
+        return new Response(JSON.stringify({ ok: true }), {
+          headers: { 'Content-Type': 'application/json', 'Set-Cookie': `admin_session=${sessionId}; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=86400` },
+        })
+      } catch {
+        return jsonResponse({ error: '请求格式错误' }, 400)
+      }
+    }
+
+    // Admin logout
+    if (path === '/admin/logout' && request.method === 'POST') {
+      const cookies = parseCookies(request.headers.get('Cookie'))
+      if (cookies.admin_session) {
+        await env.DB.prepare('DELETE FROM sessions WHERE id = ? AND user_id = ?').bind(cookies.admin_session, 'admin').run()
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { 'Content-Type': 'application/json', 'Set-Cookie': 'admin_session=; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=0' },
+      })
+    }
+
+    // Admin config API
+    if (path === '/admin/api/config') {
+      const cookies = parseCookies(request.headers.get('Cookie'))
+      const valid = await validateAdminSession(env.DB, cookies.admin_session)
+      if (!valid) return jsonResponse({ error: '未登录' }, 401)
+
+      const method = request.method
+      if (method === 'GET') {
+        const rows = await env.DB.prepare('SELECT key, value FROM config').all<{ key: string; value: string }>()
+        const configs: Record<string, { value: string; sensitive: boolean }> = {}
+        const sensitiveKeys = ['STEAM_API_KEY', 'LLM_API_KEY']
+        for (const r of (rows.results || [])) {
+          configs[r.key] = { value: sensitiveKeys.includes(r.key) ? '' : r.value, sensitive: sensitiveKeys.includes(r.key) || r.key === 'TELEGRAM' }
+        }
+        // reveal endpoint
+        const revealKey = url.searchParams.get('reveal')
+        if (revealKey) {
+          const row = await env.DB.prepare('SELECT value FROM config WHERE key = ?').bind(revealKey).first<{ value: string }>()
+          return jsonResponse({ value: row?.value || '' })
+        }
+        return jsonResponse(configs)
+      }
+      if (method === 'PUT') {
+        const body = await request.json() as { key?: string; value?: string }
+        if (!body.key) return jsonResponse({ error: '缺少 key' }, 400)
+        await env.DB.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').bind(body.key, String(body.value || '')).run()
+        return jsonResponse({ ok: true })
+      }
+      if (method === 'DELETE') {
+        const body = await request.json() as { key?: string }
+        if (!body.key) return jsonResponse({ error: '缺少 key' }, 400)
+        await env.DB.prepare('DELETE FROM config WHERE key = ?').bind(body.key).run()
+        return jsonResponse({ ok: true })
+      }
+      return jsonResponse({ error: '不支持的请求方法' }, 405)
+    }
 
     if (path === '/api/auth/steam') {
       const returnPath = url.searchParams.get('return') || '/'
