@@ -335,6 +335,11 @@ export async function handleCallbackQuery(cb: { data?: string; id?: string; mess
   const config = await getTelegramConfig(env)
   const token = config.token as string | undefined
   if (!token) return
+  // always answer callback query FIRST so Telegram stops the spinner
+  if (cb.id) {
+    await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id }).catch(() => {})
+  }
+
   const data = cb.data || ''
   const chatId = cb.message?.chat?.id
   const msgId = cb.message?.message_id
@@ -343,8 +348,6 @@ export async function handleCallbackQuery(cb: { data?: string; id?: string; mess
   // detail_{appid} — show game detail
   if (data.startsWith('detail_')) {
     const appid = parseInt(data.replace('detail_', ''))
-    if (!appid) return
-    await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id })
     const [cnMap, enMap] = await Promise.all([
       fetchBatchAppDetails([appid], 'schinese'),
       fetchBatchAppDetails([appid], 'english'),
@@ -394,7 +397,6 @@ export async function handleCallbackQuery(cb: { data?: string; id?: string; mess
     if (!session.search) return
     session.search.currentPage = page
     await saveSession(env, chatId, session)
-    await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id })
     // edit existing message
     const startIdx = page * 5
     const pageItems = session.search.results.slice(startIdx, startIdx + 5)
@@ -426,7 +428,6 @@ export async function handleCallbackQuery(cb: { data?: string; id?: string; mess
       await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id, text: '搜索已过期，请重新搜索' })
       return
     }
-    await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id })
     const { currentPage, totalPages } = session.search
     await sendSearchResults(token, chatId, session.search.results, currentPage, totalPages)
     return
@@ -434,7 +435,6 @@ export async function handleCallbackQuery(cb: { data?: string; id?: string; mess
 
   // menu_* — main menu navigation
   if (data.startsWith('menu_')) {
-    await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id })
     const action = data.replace('menu_', '')
     switch (action) {
       case 'main':
@@ -471,7 +471,6 @@ export async function handleCallbackQuery(cb: { data?: string; id?: string; mess
 
   // page_info — just acknowledge
   if (data === 'page_info') {
-    await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id })
     return
   }
 

@@ -109,13 +109,21 @@ export async function sendGameDetail(
   const replyMarkup = { inline_keyboard: keyboard }
 
   if (photoUrl) {
-    await tgCall(token, 'sendPhoto', {
+    const photoRes = await tgCall(token, 'sendPhoto', {
       chat_id: chatId,
       photo: photoUrl,
       caption: text,
       parse_mode: 'MarkdownV2',
       reply_markup: replyMarkup,
     })
+    if (!photoRes.ok) {
+      await tgCall(token, 'sendMessage', {
+        chat_id: chatId,
+        text,
+        parse_mode: 'MarkdownV2',
+        reply_markup: replyMarkup,
+      })
+    }
   } else {
     await tgCall(token, 'sendMessage', {
       chat_id: chatId,
