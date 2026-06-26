@@ -1,8 +1,26 @@
 import { getTelegramConfig } from '../steam.js'
 
+export async function sendMessageMd(token: string, chatId: number, text: string, extra: Record<string, unknown> = {}): Promise<TgResponse> {
+  const res = await tgCall(token, 'sendMessage', {
+    chat_id: chatId, text, parse_mode: 'MarkdownV2', ...extra,
+  })
+  if (!res.ok) {
+    const plainExtra: Record<string, unknown> = {}
+    for (const k of Object.keys(extra)) {
+      if (k !== 'parse_mode') plainExtra[k] = extra[k]
+    }
+    return tgCall(token, 'sendMessage', {
+      chat_id: chatId, text, ...plainExtra,
+    })
+  }
+  return res
+}
+
+
 interface TgResponse {
   ok?: boolean
   result?: unknown
+  description?: string
 }
 
 export async function tgCall(token: string, method: string, body: Record<string, unknown>): Promise<TgResponse> {
@@ -12,11 +30,15 @@ export async function tgCall(token: string, method: string, body: Record<string,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  return resp.json()
+  const json = await resp.json() as TgResponse
+  if (!json.ok) {
+    console.error(`telegram ${method} failed:`, json.description || JSON.stringify(json))
+  }
+  return json
 }
 
 export function escMd(text: string): string {
-  return String(text).replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&')
+  return String(text).replace(/[_*[\]()~`>#+\-=|{}.!\\]/g, '\\$&')
 }
 
 export async function steamStoreSearch(query: string, lang: string): Promise<{ items?: { id: number; name: string; type: string }[] }> {
@@ -117,20 +139,45 @@ export async function sendGameDetail(
       reply_markup: replyMarkup,
     })
     if (!photoRes.ok) {
-      await tgCall(token, 'sendMessage', {
+      // try photo without markdown
+      const photoPlain = await tgCall(token, 'sendPhoto', {
         chat_id: chatId,
-        text,
-        parse_mode: 'MarkdownV2',
+        photo: photoUrl,
+        caption: text,
         reply_markup: replyMarkup,
       })
+      if (!photoPlain.ok) {
+        // fallback to text with markdown
+        const msgMd = await tgCall(token, 'sendMessage', {
+          chat_id: chatId,
+          text,
+          parse_mode: 'MarkdownV2',
+          reply_markup: replyMarkup,
+        })
+        if (!msgMd.ok) {
+          // final fallback: plain text
+          await tgCall(token, 'sendMessage', {
+            chat_id: chatId,
+            text,
+            reply_markup: replyMarkup,
+          })
+        }
+      }
     }
   } else {
-    await tgCall(token, 'sendMessage', {
+    const msgMd = await tgCall(token, 'sendMessage', {
       chat_id: chatId,
       text,
       parse_mode: 'MarkdownV2',
       reply_markup: replyMarkup,
     })
+    if (!msgMd.ok) {
+      await tgCall(token, 'sendMessage', {
+        chat_id: chatId,
+        text,
+        reply_markup: replyMarkup,
+      })
+    }
   }
 }
 
