@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   personaname TEXT NOT NULL DEFAULT '',
   avatar TEXT NOT NULL DEFAULT '',
+  chat_id TEXT,
   created_at INTEGER NOT NULL DEFAULT (unixepoch()),
   last_login INTEGER NOT NULL DEFAULT (unixepoch())
 );
