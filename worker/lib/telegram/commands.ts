@@ -1,8 +1,10 @@
-import { KV_KEYS, getTelegramConfig } from '../steam.js'
-import { tgCall, escMd, steamStoreSearch, fetchBatchAppDetails, searchLocal, sendGameDetail, sendSearchResults, isAdmin } from './utils.js'
+import { getTelegramConfig, getChineseNameIndex } from '../kv-keys.js'
+import { tgCall, escMd, steamStoreSearch, fetchBatchAppDetails, sendGameDetail, sendSearchResults, isAdmin } from './utils.js'
 import { getSession, saveSession } from './session.js'
+import { initDB } from '../../db/index.js'
 
 export async function handleSearch(query: string, chatId: number, env: Env): Promise<void> {
+  await initDB(env.DB)
   const config = await getTelegramConfig(env)
   const token = config.token as string | undefined
   if (!token) return
@@ -13,21 +15,12 @@ export async function handleSearch(query: string, chatId: number, env: Env): Pro
 
   let localResults: { appid?: number; name?: string }[] = []
   if (query.length >= 3) {
-    const detailData = await env.KV.get(KV_KEYS.DATA_GAMES_DETAIL, 'json') as { games?: { name?: string; appid?: number }[] } | null
-    const allGames = detailData?.games || []
-    localResults = searchLocal(allGames, query)
-
-    // also search user's library (has Chinese names from fill-details)
-    const libData = await env.KV.get(KV_KEYS.DATA_LIBRARY, 'json') as { games?: { name?: string; appid?: number }[] } | null
-    if (libData?.games) {
-      for (const g of libData.games) {
-        if (g.name && g.appid && !localResults.some(r => r.appid === g.appid)) {
-          const lowered = g.name.toLowerCase()
-          if (lowered.includes(query.toLowerCase())) {
-            localResults.push({ appid: g.appid, name: g.name })
-          }
-        }
-      }
+    const pattern = `%${query}%`
+    const libRows = await env.DB.prepare(
+      'SELECT DISTINCT appid, name FROM library WHERE name LIKE ? LIMIT 20'
+    ).bind(pattern).all<{ appid: number; name: string }>()
+    if (libRows.results) {
+      localResults = libRows.results.map(r => ({ appid: r.appid, name: r.name }))
     }
   }
 
@@ -64,10 +57,26 @@ export async function handleSearch(query: string, chatId: number, env: Env): Pro
   }
 
   if (!searchResult.items?.length) {
-    const hint = isChinese ? '\n💡 试试用英文名搜索，例如 Terraria → terraria' : ''
+    if (isChinese) {
+      const idx = await getChineseNameIndex(env)
+      const lc = query.toLowerCase()
+      const matched = Object.entries(idx).find(([cn]) => cn.toLowerCase() === lc)
+      if (matched) {
+        const appid = matched[1]
+        const [cnMap, enMap] = await Promise.all([
+          fetchBatchAppDetails([appid], 'schinese'),
+          fetchBatchAppDetails([appid], 'english'),
+        ])
+        const items = [{ appid, name: (enMap[appid] as { name?: string } | undefined)?.name || query }]
+        await sendSearchResults(token, chatId, items, 0, 1)
+        await saveSession(env, chatId, { search: { results: items, query, currentPage: 0, totalPages: 1, isSteamSearch: false } })
+        await sendGameDetail(token, chatId, appid, cnMap[appid] || { name: query }, enMap[appid] as Record<string, unknown> | undefined, true)
+        return
+      }
+    }
     await tgCall(token, 'sendMessage', {
       chat_id: chatId,
-      text: `❌ 未找到相关游戏${hint}`,
+      text: `❌ 未找到相关游戏\n💡 试试用英文名搜索`,
     })
     return
   }
@@ -113,10 +122,18 @@ export async function cmdStart(token: string, chatId: number): Promise<void> {
 
 export async function cmdRecommend(token: string, chatId: number, env: Env): Promise<void> {
   await tgCall(token, 'sendChatAction', { chat_id: chatId, action: 'typing' })
-  const gamesData = await env.KV.get(KV_KEYS.DATA_GAMES, 'json') as { games?: { appid?: number; reason?: string; score?: number }[] } | null
-  const detailData = await env.KV.get(KV_KEYS.DATA_GAMES_DETAIL, 'json') as { games?: { appid?: number; name?: string }[] } | null
-  const games = gamesData?.games || []
-  const details = detailData?.games || []
+  await initDB(env.DB)
+  const adminUsers = await env.DB.prepare('SELECT id FROM users').all<{ id: string }>()
+  let rows: { results?: { appid: number; name: string; reason: string; score: number }[] }
+  if ((adminUsers.results || []).length > 0) {
+    const uid = adminUsers.results![0].id
+    rows = await env.DB.prepare(
+      'SELECT appid, name, reason, score FROM recommendations WHERE user_id=? ORDER BY score DESC LIMIT 5'
+    ).bind(uid).all<{ appid: number; name: string; reason: string; score: number }>()
+  } else {
+    rows = { results: [] }
+  }
+  const games = rows.results || []
 
   if (!games.length) {
     await tgCall(token, 'sendMessage', {
@@ -126,16 +143,11 @@ export async function cmdRecommend(token: string, chatId: number, env: Env): Pro
     return
   }
 
-  const detailMap: Record<number, { name?: string }> = {}
-  for (const d of details) detailMap[Number(d.appid)] = d
-
   let text = `🎯 *今日推荐* \\(${games.length} 款\\)\n\n`
-  for (let i = 0; i < Math.min(games.length, 5); i++) {
+  for (let i = 0; i < games.length; i++) {
     const g = games[i]
-    const d = detailMap[Number(g.appid)]
-    const name = d?.name || `appid: ${g.appid}`
     const reason = g.reason || ''
-    text += `*${i + 1}\\. ${escMd(name)}*\n`
+    text += `*${i + 1}\\. ${escMd(g.name)}*\n`
     if (reason) text += `💡 ${escMd(reason)}\n`
     text += `\n`
   }
@@ -148,26 +160,25 @@ export async function cmdRecommend(token: string, chatId: number, env: Env): Pro
 
 export async function cmdLibrary(token: string, chatId: number, env: Env): Promise<void> {
   await tgCall(token, 'sendChatAction', { chat_id: chatId, action: 'typing' })
-  const data = await env.KV.get(KV_KEYS.DATA_LIBRARY, 'json') as { games?: { appid?: number; name?: string; playtime_hours?: number; genres?: string[] }[] } | null
-  const games = data?.games || []
+  await initDB(env.DB)
+  const users = await env.DB.prepare('SELECT id FROM users LIMIT 1').all<{ id: string }>()
+  const uid = (users.results || [])[0]?.id
+  if (!uid) {
+    await tgCall(token, 'sendMessage', { chat_id: chatId, text: '📭 尚未登录 Steam' })
+    return
+  }
+  const rows = await env.DB.prepare(
+    'SELECT name, playtime_hours FROM library WHERE user_id=? ORDER BY playtime_hours DESC'
+  ).bind(uid).all<{ name: string; playtime_hours: number }>()
+  const games = rows.results || []
   if (!games.length) {
     await tgCall(token, 'sendMessage', { chat_id: chatId, text: '📭 库数据为空' })
     return
   }
-
-  const totalPlaytime = (games as { playtime_hours?: number }[]).reduce((s: number, g) => s + (g.playtime_hours || 0), 0)
-  const top5 = [...games].sort((a, b) => (b.playtime_hours || 0) - (a.playtime_hours || 0)).slice(0, 5)
-
-  const lines = top5.map((g, i) =>
-    `${i + 1}\\. ${escMd(g.name || '')} — ${(g.playtime_hours || 0).toFixed(1)}h`
-  )
-
-  const text = `📚 *游戏库* \\(${games.length} 款游戏\\)
-⏱ 总时长: ${totalPlaytime.toFixed(0)} 小时
-
-*玩得最多:*
-${lines.join('\n')}`
-
+  const totalPlaytime = games.reduce((s, g) => s + (g.playtime_hours || 0), 0)
+  const top5 = games.slice(0, 5)
+  const lines = top5.map((g, i) => `${i + 1}\\. ${escMd(g.name || '')} — ${(g.playtime_hours || 0).toFixed(1)}h`)
+  const text = `📚 *游戏库* \\(${games.length} 款游戏\\)\n⏱ 总时长: ${totalPlaytime.toFixed(0)} 小时\n\n*玩得最多:*\n${lines.join('\n')}`
   await tgCall(token, 'sendMessage', {
     chat_id: chatId, text, parse_mode: 'MarkdownV2',
     reply_markup: { inline_keyboard: [[{ text: '🏠 主菜单', callback_data: 'menu_main' }]] },
@@ -176,23 +187,23 @@ ${lines.join('\n')}`
 
 export async function cmdStats(token: string, chatId: number, env: Env): Promise<void> {
   await tgCall(token, 'sendChatAction', { chat_id: chatId, action: 'typing' })
-  const gamesData = await env.KV.get(KV_KEYS.DATA_GAMES, 'json') as Record<string, unknown> | null
-  const detailData = await env.KV.get(KV_KEYS.DATA_GAMES_DETAIL, 'json') as Record<string, unknown> | null
-  const libData = await env.KV.get(KV_KEYS.DATA_LIBRARY, 'json') as Record<string, unknown> | null
-
-  const totalOwned = (gamesData?.total_owned as number) || 0
-  const recCount = ((gamesData?.games) as unknown[])?.length || 0
-  const detailCount = ((detailData?.games) as unknown[])?.length || 0
-  const libCount = ((libData?.games) as unknown[])?.length || 0
-  const libHours = (libData?.total_playtime_hours as number) || 0
-
-  const text = `📊 *GameSeeker 统计*
-━━━━━━━━━━━━━━━
-🎮 Steam 库: *${totalOwned}* 款
-📚 已同步: *${libCount}* 款 \\(${libHours.toFixed(0)}h\\)
-🎯 已推荐: *${recCount}* 款
-📋 含详情: *${detailCount}* 款`
-
+  await initDB(env.DB)
+  const users = await env.DB.prepare('SELECT id FROM users LIMIT 1').all<{ id: string }>()
+  const uid = (users.results || [])[0]?.id
+  if (!uid) {
+    await tgCall(token, 'sendMessage', { chat_id: chatId, text: '📭 尚未登录 Steam' })
+    return
+  }
+  const libRow = await env.DB.prepare(
+    'SELECT COUNT(*) as count, COALESCE(SUM(playtime_hours),0) as hours FROM library WHERE user_id=?'
+  ).bind(uid).first<{ count: number; hours: number }>()
+  const recRow = await env.DB.prepare(
+    'SELECT COUNT(*) as count FROM recommendations WHERE user_id=?'
+  ).bind(uid).first<{ count: number }>()
+  const libCount = libRow?.count || 0
+  const libHours = libRow?.hours || 0
+  const recCount = recRow?.count || 0
+  const text = `📊 *GameSeeker 统计*\n━━━━━━━━━━━━━━━\n📚 已同步: *${libCount}* 款 \\(${libHours.toFixed(0)}h\\)\n🎯 已推荐: *${recCount}* 款`
   await tgCall(token, 'sendMessage', {
     chat_id: chatId, text, parse_mode: 'MarkdownV2',
     reply_markup: { inline_keyboard: [[{ text: '🏠 主菜单', callback_data: 'menu_main' }]] },
@@ -206,66 +217,60 @@ export async function cmdSubscribe(args: string, chatId: number, env: Env): Prom
     await tgCall(token || '', 'sendMessage', { chat_id: chatId, text: '请指定游戏名，如 /subscribe 黑神话:悟空' })
     return
   }
-
   const searchResult = await steamStoreSearch(args, 'schinese')
   if (!searchResult.items?.length) {
     await tgCall(token, 'sendMessage', { chat_id: chatId, text: '❌ 未找到该游戏' })
     return
   }
-
   const appid = searchResult.items[0].id
   const name = searchResult.items[0].name
 
-  const key = KV_KEYS.subKey(chatId)
-  const subs: { appid: number; name: string; added: number }[] = (await env.KV.get(key, 'json') as { appid: number; name: string; added: number }[] | null) || []
-
-  if (subs.some(s => s.appid === appid)) {
-    await tgCall(token, 'sendMessage', { chat_id: chatId, text: `✅ 已订阅过 *${escMd(name)}*`, parse_mode: 'MarkdownV2' })
-    return
+  const userRow = await env.DB.prepare('SELECT id FROM users WHERE chat_id=?').bind(String(chatId)).first<{ id: string }>()
+  const userId = userRow?.id || String(chatId)
+  if (!userRow) {
+    await env.DB.prepare('INSERT INTO users (id, chat_id) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET chat_id=excluded.chat_id')
+      .bind(userId, String(chatId)).run()
   }
 
-  subs.push({ appid, name, added: Date.now() })
-  await env.KV.put(key, JSON.stringify(subs))
+  await env.DB.prepare(
+    'INSERT INTO subscriptions (user_id, appid, name) VALUES (?, ?, ?) ON CONFLICT(user_id, appid) DO NOTHING'
+  ).bind(userId, appid, name).run()
 
   await tgCall(token, 'sendMessage', {
     chat_id: chatId,
     text: `✅ 已订阅 *${escMd(name)}* 的降价通知，降价时将第一时间通知你`,
     parse_mode: 'MarkdownV2',
-    reply_markup: {
-      inline_keyboard: [[{ text: '🔗 Steam', url: `https://store.steampowered.com/app/${appid}/` }]],
-    },
+    reply_markup: { inline_keyboard: [[{ text: '🔗 Steam', url: `https://store.steampowered.com/app/${appid}/` }]] },
   })
 }
 
 export async function cmdUnsubscribe(args: string, chatId: number, env: Env): Promise<void> {
   const config = await getTelegramConfig(env)
   const token = config.token as string | undefined
-  const key = KV_KEYS.subKey(chatId)
-  const subs: { appid: number; name: string; added: number }[] = (await env.KV.get(key, 'json') as { appid: number; name: string; added: number }[] | null) || []
+  const userRow = await env.DB.prepare('SELECT id FROM users WHERE chat_id=?').bind(String(chatId)).first<{ id: string }>()
+  const userId = userRow?.id || String(chatId)
+  const subs = await env.DB.prepare(
+    'SELECT id, appid, name FROM subscriptions WHERE user_id=?'
+  ).bind(userId).all<{ id: number; appid: number; name: string }>()
+  const subsList = subs.results || []
 
-  if (!subs.length) {
+  if (!subsList.length) {
     await tgCall(token || '', 'sendMessage', { chat_id: chatId, text: '📭 暂无订阅' })
     return
   }
-
   if (!args) {
-    const lines = subs.map((s, i) => `${i + 1}\\. ${escMd(s.name)}`)
+    const lines = subsList.map((s, i) => `${i + 1}\\. ${escMd(s.name)}`)
     await tgCall(token || '', 'sendMessage', {
-      chat_id: chatId,
-      text: `📋 *订阅列表*\n回复编号取消:\n\n${lines.join('\n')}`,
-      parse_mode: 'MarkdownV2',
-      reply_markup: {
-        inline_keyboard: [[{ text: '🔔 在列表中管理', callback_data: 'menu_subs' }]],
-      },
+      chat_id: chatId, text: `📋 *订阅列表*\n回复编号取消:\n\n${lines.join('\n')}`, parse_mode: 'MarkdownV2',
+      reply_markup: { inline_keyboard: [[{ text: '🔔 在列表中管理', callback_data: 'menu_subs' }]] },
     })
     return
   }
-
   const idx = parseInt(args) - 1
-  if (idx >= 0 && idx < subs.length) {
-    const removed = subs.splice(idx, 1)
-    await env.KV.put(key, JSON.stringify(subs))
-    await tgCall(token || '', 'sendMessage', { chat_id: chatId, text: `✅ 已取消 *${escMd(removed[0].name)}*`, parse_mode: 'MarkdownV2' })
+  if (idx >= 0 && idx < subsList.length) {
+    const removed = subsList[idx]
+    await env.DB.prepare('DELETE FROM subscriptions WHERE id=? AND user_id=?').bind(removed.id, userId).run()
+    await tgCall(token || '', 'sendMessage', { chat_id: chatId, text: `✅ 已取消 *${escMd(removed.name)}*`, parse_mode: 'MarkdownV2' })
   } else {
     await tgCall(token || '', 'sendMessage', { chat_id: chatId, text: '❌ 无效编号' })
   }
@@ -274,31 +279,27 @@ export async function cmdUnsubscribe(args: string, chatId: number, env: Env): Pr
 export async function cmdList(chatId: number, env: Env): Promise<void> {
   const config = await getTelegramConfig(env)
   const token = config.token as string | undefined
-  const subs: { appid: number; name: string }[] = (await env.KV.get(KV_KEYS.subKey(chatId), 'json') as { appid: number; name: string }[] | null) || []
-
-  if (!subs.length) {
+  const userRow = await env.DB.prepare('SELECT id FROM users WHERE chat_id=?').bind(String(chatId)).first<{ id: string }>()
+  const userId = userRow?.id || String(chatId)
+  const subs = await env.DB.prepare('SELECT appid, name FROM subscriptions WHERE user_id=?')
+    .bind(userId).all<{ appid: number; name: string }>()
+  const subsList = subs.results || []
+  if (!subsList.length) {
     await tgCall(token || '', 'sendMessage', { chat_id: chatId, text: '📭 你还没有订阅任何游戏\n使用 /subscribe 游戏名 来添加' })
     return
   }
-
-  const appids = subs.map(s => s.appid)
+  const appids = subsList.map(s => s.appid)
   const cnMap = await fetchBatchAppDetails(appids, 'schinese')
-
-  const keyboard = subs.map((s, i) => {
+  const keyboard = subsList.map((s, i) => {
     const d = cnMap[s.appid]
     const price = d?.price_overview as { final?: number; discount_percent?: number } | undefined
     const discount = price?.discount_percent && price.discount_percent > 0 ? ` 🔥-${price.discount_percent}%` : ''
-    const label = `${s.name}${discount}`.length > 40
-      ? `${s.name.slice(0, 35)}…${discount}`
-      : `${s.name}${discount}`
+    const label = `${s.name}${discount}`.length > 40 ? `${s.name.slice(0, 35)}…${discount}` : `${s.name}${discount}`
     return [{ text: `🔕 ${label}`, callback_data: `unsub_${i}` }]
   })
   keyboard.push([{ text: '🏠 主菜单', callback_data: 'menu_main' }])
-
   await tgCall(token || '', 'sendMessage', {
-    chat_id: chatId,
-    text: `📋 *我的订阅* \\(${subs.length}\\)\n点击项目退订`,
-    parse_mode: 'MarkdownV2',
+    chat_id: chatId, text: `📋 *我的订阅* \\(${subsList.length}\\)\n点击项目退订`, parse_mode: 'MarkdownV2',
     reply_markup: { inline_keyboard: keyboard },
   })
 }
@@ -306,17 +307,13 @@ export async function cmdList(chatId: number, env: Env): Promise<void> {
 async function runPipeline(action: string, chatId: number, env: Env, token: string): Promise<void> {
   try {
     if (action === 'recommend') {
-      const { recommend } = await import('../deepsteam.js')
-      const { fetchSteam } = await import('../../scripts/fetch-steam.js')
-      await recommend(env)
-      await fetchSteam(env)
-      await tgCall(token, 'sendMessage', { chat_id: chatId, text: '✅ 推荐管线完成' })
+      const { recommendForAllUsers } = await import('../deepsteam.js')
+      const results = await recommendForAllUsers(env)
+      await tgCall(token, 'sendMessage', { chat_id: chatId, text: `✅ 推荐管线完成 (${results.length} 用户)` })
     } else if (action === 'library') {
-      const { fetchLibrary } = await import('../../scripts/fetch-library.js')
-      const { fillDetails } = await import('../../scripts/fill-details.js')
-      await fetchLibrary(env)
-      await fillDetails(env)
-      await tgCall(token, 'sendMessage', { chat_id: chatId, text: '✅ 库同步完成' })
+      const { syncAllUsers } = await import('../../scripts/fetch-library.js')
+      const results = await syncAllUsers(env)
+      await tgCall(token, 'sendMessage', { chat_id: chatId, text: `✅ 库同步完成 (${results.length} 用户)` })
     }
   } catch (e) {
     console.error(`${action} 管线失败:`, e)
@@ -392,14 +389,11 @@ export async function handleCallbackQuery(cb: { data?: string; id?: string; mess
   if (data.startsWith('sub_')) {
     const appid = parseInt(data.replace('sub_', ''))
     if (!appid) return
-    const key = KV_KEYS.subKey(chatId)
-    const subs: { appid: number; name: string; added: number }[] = (await env.KV.get(key, 'json') as { appid: number; name: string; added: number }[] | null) || []
-    if (subs.some(s => s.appid === appid)) {
-      await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id, text: '已订阅过' })
-      return
-    }
-    subs.push({ appid, name: '通过搜索添加', added: Date.now() })
-    await env.KV.put(key, JSON.stringify(subs))
+    const userRow = await env.DB.prepare('SELECT id FROM users WHERE chat_id=?').bind(String(chatId)).first<{ id: string }>()
+    const userId = userRow?.id || String(chatId)
+    await env.DB.prepare(
+      'INSERT INTO subscriptions (user_id, appid, name) VALUES (?, ?, ?) ON CONFLICT(user_id, appid) DO NOTHING'
+    ).bind(userId, appid, '通过搜索添加').run()
     await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id, text: '✅ 已订阅降价通知' })
     return
   }
@@ -407,14 +401,15 @@ export async function handleCallbackQuery(cb: { data?: string; id?: string; mess
   // unsub_{index} — unsubscribe from list by index
   if (data.startsWith('unsub_')) {
     const idx = parseInt(data.replace('unsub_', ''))
-    const key = KV_KEYS.subKey(chatId)
-    const subs: { appid: number; name: string }[] = (await env.KV.get(key, 'json') as { appid: number; name: string }[] | null) || []
-    if (idx >= 0 && idx < subs.length) {
-      const removed = subs[idx]
-      subs.splice(idx, 1)
-      await env.KV.put(key, JSON.stringify(subs))
+    const userRow = await env.DB.prepare('SELECT id FROM users WHERE chat_id=?').bind(String(chatId)).first<{ id: string }>()
+    const userId = userRow?.id || String(chatId)
+    const subs = await env.DB.prepare('SELECT id, name FROM subscriptions WHERE user_id=? ORDER BY added_at')
+      .bind(userId).all<{ id: number; name: string }>()
+    const subsList = subs.results || []
+    if (idx >= 0 && idx < subsList.length) {
+      const removed = subsList[idx]
+      await env.DB.prepare('DELETE FROM subscriptions WHERE id=? AND user_id=?').bind(removed.id, userId).run()
       await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id, text: `✅ 已取消 ${removed.name}` })
-      // refresh the list message
       await cmdList(chatId, env)
     } else {
       await tgCall(token, 'answerCallbackQuery', { callback_query_id: cb.id, text: '无效索引' })

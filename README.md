@@ -10,13 +10,15 @@
 
 ```
 Cloudflare Worker (worker/index.ts)
-├── fetch handler
-│   ├── /               → Assets (public/index.html)
-│   ├── /games.json     → KV data:games
-│   ├── /games_detail.json → KV data:games_detail
-│   ├── /library.json   → KV data:library
-│   ├── /api/proxy/*    → Steam API 转发
-│   └── /admin          → 管理后台
+  ├── fetch handler
+  │   ├── /               → Assets (public/index.html)
+  │   ├── /api/auth/*     → D1 Steam 认证
+  │   ├── /api/library    → 用户游戏库
+  │   ├── /api/recommendations → AI 推荐
+  │   ├── /api/search     → 游戏搜索
+  │   ├── /api/subscriptions  → 订阅管理
+  │   ├── /api/bot/*      → Telegram Bot
+  │   └── /api/proxy/*    → Steam API 转发
 │
 └── scheduled handler
     ├── 0 3 * * *       → auto_recommend + fetch_steam
@@ -35,14 +37,12 @@ Cloudflare Worker (worker/index.ts)
 
 ### 2. 管理后台配置
 
-- 访问 `https://{your-worker}.workers.dev/admin`
-- 输入初始密码（环境变量 `ADMIN_PASSWORD`）
-- 在管理页面配置以下 key：
+配置通过 D1 `config` 表管理。运行 `npm run init-db` 初始化数据库后，通过 D1 dashboard 或 `wrangler d1 execute` 配置以下 key：
 
 | Key | 说明 |
 |-----|------|
 | `STEAM_API_KEY` | Steam API Key |
-| `STEAM_USER_ID` | Steam 数字 ID 或 URL 名 |
+| `STEAM_USER_ID` | Steam 数字 ID |
 | `LLM_PROVIDER` | `openai` / `deepseek` / `qwen` |
 | `LLM_API_KEY` | LLM API Key |
 | `LLM_API_BASE` | 可选，自定义 API 端点 |
@@ -68,7 +68,7 @@ Cloudflare Worker (worker/index.ts)
 | `worker/index.ts` | Worker 入口：路由分发 + 管理后台 + Cron 调度 |
 | `worker/lib/steam.ts` | Steam API 封装：请求重试/退避/并发/详情/评测 |
 | `worker/lib/steam-api.ts` | HttpSteamClient 实现（SteamAPIClient 接口） |
-| `worker/lib/store.ts` | CfKvStore 实现（KVStore 接口） |
+| `worker/lib/kv-keys.ts` | KV 键名常量 + 过渡期 KV 访问函数 |
 | `worker/lib/llm.ts` | LLM 客户端：OpenAI / DeepSeek / Qwen |
 | `worker/lib/scoring.ts` | 加权评分 + 系列过滤算法 |
 | `worker/lib/profile.ts` | 用户多兴趣画像构建 |
@@ -77,7 +77,7 @@ Cloudflare Worker (worker/index.ts)
 | `worker/lib/telegram.ts` | Telegram Bot 路由 + 通知 |
 | `worker/types.ts` | 领域类型 + 接口定义 |
 | `public/index.html` | 前端单页应用 |
-| `test/` | 单元测试（Vitest + InMemoryKvStore + MockSteamClient） |
+| `test/` | 单元测试（Vitest + MockSteamClient） |
 
 ## 本地开发
 

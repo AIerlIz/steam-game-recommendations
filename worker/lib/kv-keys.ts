@@ -1,7 +1,4 @@
 export const KV_KEYS = {
-  DATA_GAMES: 'data:games',
-  DATA_GAMES_DETAIL: 'data:games_detail',
-  DATA_LIBRARY: 'data:library',
   DATA_CHINESE_NAMES: 'data:chinese_names',
   CONFIG_TELEGRAM: 'config:TELEGRAM',
   CONFIG_PREFIX: 'config:',
@@ -37,8 +34,4 @@ export async function getTelegramConfig(env: Env): Promise<Record<string, unknow
 
 export async function setTelegramConfig(env: Env, config: { token?: string; adminChatId?: string }): Promise<void> {
   await env.KV.put(KV_KEYS.CONFIG_TELEGRAM, JSON.stringify(config))
-}
-
-export async function saveGamesJson(env: Env, data: unknown): Promise<void> {
-  await env.KV.put(KV_KEYS.DATA_GAMES, JSON.stringify(data))
 }

@@ -1,4 +1,4 @@
-import { getTelegramConfig } from '../steam.js'
+import { getTelegramConfig } from '../kv-keys.js'
 
 export async function sendMessageMd(token: string, chatId: number, text: string, extra: Record<string, unknown> = {}): Promise<TgResponse> {
   const res = await tgCall(token, 'sendMessage', {

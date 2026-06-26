@@ -4,7 +4,7 @@ compatibility_date = "2024-10-01"
 
 assets = { directory = "./public", binding = "ASSETS" }
 
-# KV绑定
+# KV绑定（过渡期：Telegram Bot 会话缓存 + 旧管线兼容层）
 [[kv_namespaces]]
 binding = "KV"
 
@@ -29,6 +29,11 @@ crons = ["0 3 * * *", "30 3 * * 1", "0 4 * * *"]
 [env.production]
 [[env.production.kv_namespaces]]
 binding = "KV"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gameseeker-db"
+database_id = "placeholder"
 
 [env.preview]
 [[env.preview.kv_namespaces]]

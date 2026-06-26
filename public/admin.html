@@ -82,6 +82,16 @@ select:focus{outline:none;border-color:#a855f7}
       <p id="tg-status" style="margin-top:8px;font-size:13px;color:#94a3b8"></p>
     </div>
     <div class="card">
+      <h3 style="margin-bottom:16px;font-size:16px">🔤 中文名搜索</h3>
+      <p style="font-size:13px;color:#94a3b8;margin-bottom:12px">Steam API 不支持中文搜索，在此添加中文名→Steam ID 映射</p>
+      <div class="form-row">
+        <input type="text" id="cn-name" placeholder="中文游戏名（如 泰拉瑞亚）" style="flex:1">
+        <input type="number" id="cn-appid" placeholder="Steam App ID（如 105600）" style="width:140px">
+        <button class="btn btn-primary" onclick="addChineseName()">添加</button>
+      </div>
+      <p id="cn-status" style="margin-top:8px;font-size:13px;color:#94a3b8"></p>
+    </div>
+    <div class="card">
       <h3 style="margin-bottom:16px;font-size:16px">Steam 配置</h3>
       <div class="form-row">
         <span class="cfg-label">STEAM_API_KEY</span>
@@ -361,6 +371,22 @@ async function setWebhook() {
     document.getElementById('tg-status').textContent = '✅ Webhook 已设置';
   } else {
     toast('Webhook 设置失败: ' + (data.description || '未知错误'), 'error');
+  }
+}
+
+async function addChineseName() {
+  const name = document.getElementById('cn-name');
+  const appid = document.getElementById('cn-appid');
+  if (!name.value || !appid.value) { toast('请填写游戏名和 App ID', 'error'); return; }
+  const resp = await api('/api/bot/add-chinese-name', { method: 'POST', body: JSON.stringify({ name: name.value, appid: parseInt(appid.value) }) });
+  const data = await resp.json();
+  if (data.ok) {
+    toast(`✅ 已添加: ${name.value} → ${appid.value}`);
+    document.getElementById('cn-status').textContent = `✅ ${name.value} → ${appid.value}`;
+    name.value = '';
+    appid.value = '';
+  } else {
+    toast('添加失败: ' + (data.error || '未知错误'), 'error');
   }
 }
 </script>

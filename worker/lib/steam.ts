@@ -1,38 +1,4 @@
-import type { FilterResult, LibraryGame, FilterOpts, GamesData } from '../types.js'
-
-export const KV_KEYS = {
-  DATA_GAMES: 'data:games',
-  DATA_GAMES_DETAIL: 'data:games_detail',
-  DATA_LIBRARY: 'data:library',
-  DATA_CHINESE_NAMES: 'data:chinese_names',
-  CONFIG_TELEGRAM: 'config:TELEGRAM',
-  CONFIG_PREFIX: 'config:',
-  SUB_PREFIX: 'sub:',
-  LASTSEARCH_PREFIX: 'lastsearch:',
-  ADMIN_SESSION_PREFIX: 'admin:session:',
-  NOTIFIED_SUFFIX: '_notified',
-  configKey: (key: string) => `config:${key}`,
-  subKey: (chatId: number | string) => `sub:${String(chatId)}`,
-  lastSearchKey: (chatId: number | string) => `lastsearch:${String(chatId)}`,
-  sessionKey: (chatId: number | string) => `session:${String(chatId)}`,
-  adminSessionKey: (id: string) => `admin:session:${id}`,
-  notifiedKey: (subKey: string) => `${subKey}_notified`,
-}
-
-const BUILTIN_CHINESE_NAMES: Record<string, number> = {
-  '泰拉瑞亚': 105600,
-}
-
-export async function getChineseNameIndex(env: Env): Promise<Record<string, number>> {
-  const stored = await env.KV.get(KV_KEYS.DATA_CHINESE_NAMES, 'json') as Record<string, number> | null
-  return { ...BUILTIN_CHINESE_NAMES, ...(stored || {}) }
-}
-
-export async function addChineseName(env: Env, cnName: string, appid: number): Promise<void> {
-  const stored = await env.KV.get(KV_KEYS.DATA_CHINESE_NAMES, 'json') as Record<string, number> | null
-  const map: Record<string, number> = { ...(stored || {}), [cnName]: appid }
-  await env.KV.put(KV_KEYS.DATA_CHINESE_NAMES, JSON.stringify(map))
-}
+import type { FilterResult, LibraryGame, FilterOpts } from '../types.js'
 
 export function sleep(ms: number): Promise<void> {
   return new Promise(r => setTimeout(r, ms))
@@ -119,16 +85,6 @@ export async function batchFetch<T>(
   return results
 }
 
-// === 向后兼容函数（待迁移完成后移除） ===
-
-export function loadGamesJson(env: Env): Promise<GamesData> {
-  return env.KV.get(KV_KEYS.DATA_GAMES, 'json').then((data: unknown) => (data || { games: [], total_owned: 0 }) as GamesData)
-}
-
-export function saveGamesJson(env: Env, data: unknown): Promise<void> {
-  return env.KV.put(KV_KEYS.DATA_GAMES, JSON.stringify(data))
-}
-
 export async function getSteamId(steamApiKey: string, steamUserId: string): Promise<string> {
   if (!steamApiKey || !steamUserId) return ''
   if (/^\d+$/.test(steamUserId)) return steamUserId
@@ -188,24 +144,5 @@ export async function fetchReview(appid: number, lang = 'schinese'): Promise<Rec
 }
 
 export async function getConfig(env: Env, key: string, defaultValue = ''): Promise<string> {
-  return (await env.KV.get(KV_KEYS.configKey(key))) || defaultValue
-}
-
-export async function getTelegramConfig(env: Env): Promise<Record<string, unknown>> {
-  const data = await env.KV.get(KV_KEYS.CONFIG_TELEGRAM, 'json')
-  return (data || {}) as Record<string, unknown>
-}
-
-export async function setTelegramConfig(env: Env, config: { token?: string; adminChatId?: string }): Promise<void> {
-  await env.KV.put(KV_KEYS.CONFIG_TELEGRAM, JSON.stringify(config))
-}
-
-export async function getAllConfig(env: Env): Promise<Record<string, string>> {
-  const list = await env.KV.list({ prefix: KV_KEYS.CONFIG_PREFIX })
-  const config: Record<string, string> = {}
-  for (const k of list.keys) {
-    const val = await env.KV.get(k.name)
-    if (val !== null) config[k.name.replace(KV_KEYS.CONFIG_PREFIX, '')] = val
-  }
-  return config
+  return (await env.KV.get(`config:${key}`)) || defaultValue
 }

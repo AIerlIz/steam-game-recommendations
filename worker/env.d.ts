@@ -2,4 +2,5 @@
 // 此文件通过 interface 合并扩展 wrangler 自动生成的类型
 interface Env {
   ADMIN_PASSWORD: string
+  DB: D1Database
 }

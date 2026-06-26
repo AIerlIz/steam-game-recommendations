@@ -1,4 +1,4 @@
-import { KV_KEYS } from '../steam.js'
+import { KV_KEYS } from '../kv-keys.js'
 
 export interface SearchResultItem {
   appid: number

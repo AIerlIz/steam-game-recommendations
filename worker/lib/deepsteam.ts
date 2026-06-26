@@ -6,8 +6,6 @@ export {
   aiAnalyzeAndRecommend,
   recommendAlgo,
   saveRecs,
-  saveRecsKV,
-  getExistingGamesKV,
   getExistingRecAppids,
   steamSearchByName,
   recommend,
