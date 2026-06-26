@@ -1,13 +1,23 @@
 {
   "name": "gameseeker",
-  "version": "3.5.1",
+  "version": "3.8.0",
   "type": "module",
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "typecheck": "wrangler types && tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint worker/",
+    "format": "prettier --write ."
   },
   "devDependencies": {
+        "@eslint/js": "^9.24.0",
+    "eslint": "^9.24.0",
+    "prettier": "^3.5.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.30.0",
+    "vitest": "^3.1.0",
     "wrangler": "^4.104.0"
   }
 }

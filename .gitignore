@@ -12,3 +12,5 @@ docs/
 *.tmp
 *.log
 .git.backup/
+worker-configuration.d.ts
+bot_user_data.pkl

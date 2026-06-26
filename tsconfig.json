@@ -1,0 +1,13 @@
+{
+  "include": ["worker/**/*.ts", "worker/**/*.d.ts", "test/**/*.ts", "./*.d.ts"],
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": [],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true
+  }
+}

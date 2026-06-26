@@ -1,40 +1,40 @@
-export const GENRE_CLUSTERS = {
+export const GENRE_CLUSTERS: Record<string, string[]> = {
   'RPG/ARPG': ['rpg', 'action rpg', 'arpg', 'jrpg', 'crpg', 'mmorpg', 'dungeon crawler',
-                '角色扮演', '动作角色扮演', '动作rpg', '日式角色扮演', '类魂'],
+    '角色扮演', '动作角色扮演', '动作rpg', '日式角色扮演', '类魂'],
   'FPS/射击': ['fps', 'shooter', 'first-person', 'hero shooter', 'tactical shooter',
-               '射击', '第一人称', '第一人称射击', '第三人称射击', '射击游戏'],
+    '射击', '第一人称', '第一人称射击', '第三人称射击', '射击游戏'],
   '策略/模拟': ['strategy', 'simulation', 'rts', 'turn-based', 'turn based', '4x', 'grand strategy',
-                'tower defense', 'moba', 'life sim', 'dating sim', 'farming sim', 'choices matter',
-                '策略', '模拟', '回合制', '即时战略', '回合制策略', '塔防', '恋爱模拟'],
+    'tower defense', 'moba', 'life sim', 'dating sim', 'farming sim', 'choices matter',
+    '策略', '模拟', '回合制', '即时战略', '回合制策略', '塔防', '恋爱模拟'],
   '冒险/叙事': ['adventure', 'narrative', 'visual novel', 'interactive fiction', 'walking simulator',
-                'point & click', 'open world', 'open-world', 'sci-fi', 'atmospheric',
-                '冒险', '叙事', '剧情', '开放世界', '视觉小说', '探索', '科幻', '互动小说'],
+    'point & click', 'open world', 'open-world', 'sci-fi', 'atmospheric',
+    '冒险', '叙事', '剧情', '开放世界', '视觉小说', '探索', '科幻', '互动小说'],
   '恐怖/生存': ['horror', 'survival', 'zombies', 'psychological horror', 'lovecraftian',
-                'post-apocalyptic', 'post apocalyptic',
-                '恐怖', '生存', '僵尸', '末日', '后末日', '心理恐怖'],
-  '动作/格斗': ['action', 'fighting', 'beat \'em up', 'hack and slash', 'stealth', 'metroidvania',
-                'bullet hell', 'souls-like', 'soulslike', 'platformer',
-                '动作', '格斗', '清版', '类银河战士恶魔城', '平台'],
+    'post-apocalyptic', 'post apocalyptic',
+    '恐怖', '生存', '僵尸', '末日', '后末日', '心理恐怖'],
+  '动作/格斗': ['action', 'fighting', "beat 'em up", 'hack and slash', 'stealth', 'metroidvania',
+    'bullet hell', 'souls-like', 'soulslike', 'platformer',
+    '动作', '格斗', '清版', '类银河战士恶魔城', '平台'],
   '独立/创意': ['indie', 'roguelike', 'roguelite', 'rogue-like', 'rogue-lite',
-                '独立', '肉鸽', '类rogue', '像素', '创意'],
+    '独立', '肉鸽', '类rogue', '像素', '创意'],
   '沙盒/建造': ['sandbox', 'building', 'crafting', 'base building', 'city builder',
-                'colony sim', 'voxel', 'automation', 'open world survival craft',
-                '沙盒', '建造', '城市建设', '殖民模拟', '自动化'],
+    'colony sim', 'voxel', 'automation', 'open world survival craft',
+    '沙盒', '建造', '城市建设', '殖民模拟', '自动化'],
   '竞速/体育': ['racing', 'sports', 'vehicular combat',
-                '竞速', '体育', '赛车', '驾驶', '足球', '篮球'],
+    '竞速', '体育', '赛车', '驾驶', '足球', '篮球'],
   '休闲/解谜': ['casual', 'puzzle', 'card game', 'board game', 'hidden object', 'idle', 'clicker',
-                'match 3', 'word game', 'rhythm',
-                '休闲', '解谜', '卡牌', '棋盘', '消除', '三消', '益智', '音乐'],
-};
+    'match 3', 'word game', 'rhythm',
+    '休闲', '解谜', '卡牌', '棋盘', '消除', '三消', '益智', '音乐'],
+}
 
-export const GENRE_TO_CLUSTER = {};
+export const GENRE_TO_CLUSTER: Record<string, string> = {}
 for (const [cluster, keywords] of Object.entries(GENRE_CLUSTERS)) {
   for (const kw of keywords) {
-    GENRE_TO_CLUSTER[kw.toLowerCase()] = cluster;
+    GENRE_TO_CLUSTER[kw.toLowerCase()] = cluster
   }
 }
 
-export const SERIES_PATTERNS = [
+export const SERIES_PATTERNS: RegExp[] = [
   /(Civilization\s*\d*)/i,
   /(Final Fantasy\s*\d*)/i,
   /(Call of Duty.*)/i,
@@ -104,4 +104,4 @@ export const SERIES_PATTERNS = [
   /(Star Wars.*)/i,
   /(Alien\s*.*)/i,
   /(Predator.*)/i,
-];
+]
