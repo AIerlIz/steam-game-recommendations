@@ -24,7 +24,7 @@ export async function steamStoreSearch(query: string, lang: string): Promise<{ i
   try {
     const resp = await fetch(url, { signal: AbortSignal.timeout(10000) })
     if (!resp.ok) return { items: [] }
-    return resp.json()
+    return resp.json() as Promise<{ items?: { id: number; name: string; type: string }[] }>
   } catch { return { items: [] } }
 }
 
@@ -63,6 +63,7 @@ export async function sendGameDetail(
   appid: number,
   cn: Record<string, unknown> | null | undefined,
   en: Record<string, unknown> | null | undefined,
+  showBack = false,
 ): Promise<void> {
   const cnName = String(cn?.name || '未知')
   const enName = String(en?.name || cnName)
@@ -71,28 +72,41 @@ export async function sendGameDetail(
   const price = cn?.price_overview as { currency?: string; initial?: number; final?: number; discount_percent?: number } | undefined
   const priceText = price
     ? price.discount_percent && price.discount_percent > 0
-      ? `~~¥${((price.initial || 0) / 100).toFixed(0)}~~ **¥${((price.final || 0) / 100).toFixed(0)}** -${price.discount_percent}% 🔥`
+      ? `~~¥${((price.initial || 0) / 100).toFixed(0)}~~ **¥${((price.final || 0) / 100).toFixed(0)}** \\-${price.discount_percent}% 🔥`
       : `¥${((price.final || 0) / 100).toFixed(0)}`
     : '价格未知'
 
   const releaseDate = String((cn?.release_date as { date?: string })?.date || '未知')
-  const desc = (String((cn?.short_description as string) || (en?.short_description as string) || '暂无简介')).slice(0, 300)
+  const desc = String((cn?.short_description as string) || (en?.short_description as string) || '暂无简介')
+  const trimmedDesc = desc.length > 300 ? `${desc.slice(0, 300)}…` : desc
 
-  let text = `🎮 *${escMd(displayName)}*`
-  text += `\n📅 ${escMd(releaseDate)} | 💰 ${escMd(priceText)}`
-  if (Array.isArray(cn?.genres)) {
-    text += `\n🏷️ ${escMd((cn.genres as string[]).slice(0, 3).join(' · '))}`
-  }
-  text += `\n📝 ${escMd(desc)}`
+  const genres = (cn?.genres as string[]) || (en?.genres as string[]) || []
+  const tagsText = genres.slice(0, 5).join(' · ')
+
+  const reviewScore = (cn?.review_score as number) || (cn?.metacritic as { score?: number })?.score || 0
+  const ratingText = reviewScore ? `⭐ ${(reviewScore / 10).toFixed(1)}` : ''
+
+  const lines = [
+    `🎮 *${escMd(displayName)}*`,
+    `📅 ${escMd(releaseDate)} · 💰 ${priceText} ${ratingText ? `· ${ratingText}` : ''}`,
+  ]
+  if (tagsText) lines.push(`🏷️ ${escMd(tagsText)}`)
+  lines.push(`📝 ${escMd(trimmedDesc)}`)
+  const text = lines.join('\n')
 
   const photoUrl = String(cn?.header_image || '')
 
-  const replyMarkup = {
-    inline_keyboard: [[
+  const keyboard = [
+    [
       { text: '🔗 Steam', url: `https://store.steampowered.com/app/${appid}/` },
       { text: '🔔 订阅降价', callback_data: `sub_${appid}` },
-    ]],
+    ],
+  ]
+  if (showBack) {
+    keyboard.push([{ text: '◀️ 返回搜索结果', callback_data: 'back_search' }])
   }
+
+  const replyMarkup = { inline_keyboard: keyboard }
 
   if (photoUrl) {
     await tgCall(token, 'sendPhoto', {
@@ -112,35 +126,34 @@ export async function sendGameDetail(
   }
 }
 
-export async function sendGameList(
+export async function sendSearchResults(
   token: string,
   chatId: number,
-  items: { appid?: number; id?: number; name?: string }[],
-  query: string,
-  cnMap: Record<number, Record<string, unknown>>,
-  enMap: Record<number, Record<string, unknown>>,
-  isSteamSearch = false,
+  items: { appid: number; name: string }[],
+  page: number,
+  totalPages: number,
 ): Promise<void> {
-  const lines = items.map((item, i) => {
-    const aid = isSteamSearch ? (item.id as number) : (item.appid as number)
-    const cn = cnMap[aid] || item
-    const en = enMap[aid]
-    const cnName = String((cn).name || item.name || '未知')
-    const enName = String(en?.name || '')
-    const nameDisplay = cnName !== enName && enName
-      ? `${cnName} (${enName})`
-      : cnName
-    const price = (cn).price_overview as { final?: number } | undefined
-    const priceStr = price ? `¥${((price.final || 0) / 100).toFixed(0)}` : ''
-    const rating = (cn).review_score ? `⭐${(((cn).review_score as number) / 10).toFixed(1)}` : ''
-    return `${i + 1}\\. ${escMd(nameDisplay)} ${rating} ${escMd(priceStr)}`
-  })
+  const startIdx = page * 5
+  const pageItems = items.slice(startIdx, startIdx + 5)
 
-  const text = `🔍 找到${String(items.length)}个相关游戏：\n\n${lines.join('\n')}\n\n回复数字查看详情，或输入更精确的名称`
+  const keyboard = pageItems.map(item => [
+    { text: item.name.length > 40 ? `${item.name.slice(0, 38)}…` : item.name, callback_data: `detail_${item.appid}` },
+  ])
+
+  if (totalPages > 1) {
+    const nav: { text: string; callback_data: string }[] = []
+    if (page > 0) nav.push({ text: '◀️ 上一页', callback_data: `srch_${page - 1}` })
+    nav.push({ text: `📄 ${page + 1}/${totalPages}`, callback_data: 'page_info' })
+    if (page < totalPages - 1) nav.push({ text: '▶️ 下一页', callback_data: `srch_${page + 1}` })
+    keyboard.push(nav)
+  }
+
+  keyboard.push([{ text: '🏠 主菜单', callback_data: 'menu_main' }])
+
   await tgCall(token, 'sendMessage', {
     chat_id: chatId,
-    text,
-    parse_mode: 'MarkdownV2',
+    text: `🔍 找到 ${String(items.length)} 个游戏（第 ${String(page + 1)}/${String(totalPages)} 页）：`,
+    reply_markup: { inline_keyboard: keyboard },
   })
 }
 

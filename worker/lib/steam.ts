@@ -13,6 +13,7 @@ export const KV_KEYS = {
   configKey: (key: string) => `config:${key}`,
   subKey: (chatId: number | string) => `sub:${String(chatId)}`,
   lastSearchKey: (chatId: number | string) => `lastsearch:${String(chatId)}`,
+  sessionKey: (chatId: number | string) => `session:${String(chatId)}`,
   adminSessionKey: (id: string) => `admin:session:${id}`,
   notifiedKey: (subKey: string) => `${subKey}_notified`,
 }

@@ -20,6 +20,7 @@ const KEYS = {
   config: (k: string) => `config:${k}`,
   sub: (chatId: number | string) => `sub:${String(chatId)}`,
   lastSearch: (chatId: number | string) => `lastsearch:${String(chatId)}`,
+  session: (chatId: number | string) => `session:${String(chatId)}`,
   adminSession: (id: string) => `admin:session:${id}`,
   notified: (subKey: string) => `${subKey}_notified`,
 }

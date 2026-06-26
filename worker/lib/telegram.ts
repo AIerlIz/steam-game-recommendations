@@ -1,5 +1,5 @@
 import { KV_KEYS, getTelegramConfig } from './steam.js'
-import { tgCall, escMd, fetchBatchAppDetails } from './telegram/utils.js'
+import { tgCall, escMd, fetchBatchAppDetails, sendGameDetail } from './telegram/utils.js'
 import {
   handleSearch,
   cmdStart,
@@ -12,6 +12,7 @@ import {
   cmdRun,
   handleCallbackQuery,
 } from './telegram/commands.js'
+import { getSession } from './telegram/session.js'
 
 export async function handleWebhook(request: Request, env: Env, ctx: { waitUntil?: (p: Promise<void>) => void }): Promise<Response> {
   const token = (await getTelegramConfig(env)).token as string | undefined
@@ -30,50 +31,58 @@ export async function handleWebhook(request: Request, env: Env, ctx: { waitUntil
 
   const msg = update.message
   if (!msg?.text) return new Response('OK')
-
   const chatId = msg.chat?.id
   if (!chatId) return new Response('OK')
   const text = msg.text.trim()
 
-  if (/^\d+$/.test(text) && !text.startsWith('/')) {
-    const num = parseInt(text)
-    const lastSearchKey = KV_KEYS.lastSearchKey(chatId)
-    const lastSearch: { results?: { appid: number; name: string }[] } | null = await env.KV.get(lastSearchKey, 'json')
-    if (lastSearch?.results && num >= 1 && num <= lastSearch.results.length) {
-      const selected = lastSearch.results[num - 1]
-      const appid = selected.appid
-      const [cnMap, enMap] = await Promise.all([
-        fetchBatchAppDetails([appid], 'schinese'),
-        fetchBatchAppDetails([appid], 'english'),
-      ])
-      const { sendGameDetail } = await import('./telegram/utils.js')
-      await sendGameDetail(token, chatId, appid, cnMap[appid], enMap[appid])
-      return new Response('OK')
-    }
-  }
-
+  // forward chatAction for commands that may be slow
   const parts = text.split(/\s+/)
   const cmd = parts[0].toLowerCase()
   const args = parts.slice(1).join(' ')
 
+  // /search command
   if (cmd === '/search') {
     if (!args) {
       await tgCall(token, 'sendMessage', { chat_id: chatId, text: '使用方式: /search 游戏名' })
       return new Response('OK')
     }
+    await tgCall(token, 'sendChatAction', { chat_id: chatId, action: 'typing' })
     await handleSearch(args, chatId, env)
     return new Response('OK')
   }
 
+  // non-command text → implicit search
   if (!cmd.startsWith('/')) {
+    await tgCall(token, 'sendChatAction', { chat_id: chatId, action: 'typing' })
     await handleSearch(text, chatId, env)
     return new Response('OK')
   }
 
+  // /start → inline keyboard menu
+  if (cmd === '/start') {
+    await cmdStart(token, chatId)
+    return new Response('OK')
+  }
+
+  // numeric reply — fallback for old search results
+  if (/^\d+$/.test(text) && !text.startsWith('/')) {
+    const session = await getSession(env, chatId)
+    if (session.search) {
+      const num = parseInt(text)
+      const results = session.search.results
+      if (num >= 1 && num <= results.length) {
+        const selected = results[num - 1]
+        const [cnMap, enMap] = await Promise.all([
+          fetchBatchAppDetails([selected.appid], 'schinese'),
+          fetchBatchAppDetails([selected.appid], 'english'),
+        ])
+        await sendGameDetail(token, chatId, selected.appid, cnMap[selected.appid], enMap[selected.appid], true)
+        return new Response('OK')
+      }
+    }
+  }
+
   switch (cmd) {
-    case '/start':
-      await cmdStart(token, chatId)
-      break
     case '/recommend':
       await cmdRecommend(token, chatId, env)
       break
@@ -130,7 +139,7 @@ export async function notifyRecommendResult(env: Env, count: number): Promise<vo
 
   for (let i = 0; i < Math.min(newGames.length, 3); i++) {
     const g = newGames[i]
-    const d = detailMap[g.appid ?? 0]
+    const d = detailMap[Number(g.appid)]
     const name = d?.name || `appid: ${g.appid}`
     text += `*${i + 1}\\. ${escMd(name)}*\n`
     if (g.reason) text += `💡 ${escMd(g.reason)}\n`
@@ -191,6 +200,12 @@ export async function checkDiscounts(env: Env): Promise<void> {
             text: msg,
             parse_mode: 'MarkdownV2',
             disable_web_page_preview: false,
+            reply_markup: {
+              inline_keyboard: [[
+                { text: '🔗 Steam', url: `https://store.steampowered.com/app/${sub.appid}/` },
+                { text: '🔕 退订', callback_data: `unsub_${subs.indexOf(sub)}` },
+              ]],
+            },
           })
 
           notified[String(sub.appid)] = price.final as number
