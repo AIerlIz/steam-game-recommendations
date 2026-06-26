@@ -3,11 +3,13 @@ import { recommendForAllUsers } from './lib/deepsteam.js'
 import { fetchSteam } from './scripts/fetch-steam.js'
 import { fetchLibrary, syncAllUsers } from './scripts/fetch-library.js'
 import { fillDetails } from './scripts/fill-details.js'
-import { handleWebhook, notifyRecommendResult, notifyLibraryResult, checkDiscounts } from './lib/telegram.js'
+import { handleWebhook, notifyRecommendResult, notifyLibraryResult, checkDiscounts, checkDiscountsD1 } from './lib/telegram.js'
 import { steamLoginUrl, verifySteamLogin } from './auth/steam.js'
 import { createSession as createD1Session, getSessionUser, upsertUser, sessionCookie, clearCookie as clearD1Cookie } from './auth/session.js'
 import { handleLibrary } from './api/library.js'
 import { handleRecommendations } from './api/recommendations.js'
+import { handleSearch } from './api/search.js'
+import { handleSubscriptions } from './api/subscriptions.js'
 
 async function createSession(env: Env): Promise<string> {
   const id = crypto.randomUUID()
@@ -160,6 +162,10 @@ export default {
 
     if (path === '/api/recommendations') return handleRecommendations(env, request)
 
+    if (path === '/api/search') return handleSearch(env, request)
+
+    if (path.startsWith('/api/subscriptions')) return handleSubscriptions(env, request)
+
     if (request.method === 'POST' && path === '/admin/login') {
       return handleAdminLogin(request, env)
     }
@@ -311,7 +317,10 @@ export default {
       }
       case '0 4 * * *': {
         console.log('开始检查降价...')
-        await checkDiscounts(env).catch(e => console.error('checkDiscounts 失败:', e))
+        await Promise.all([
+          checkDiscounts(env).catch(e => console.error('checkDiscounts 失败:', e)),
+          checkDiscountsD1(env).catch(e => console.error('checkDiscountsD1 失败:', e)),
+        ])
         break
       }
       default:

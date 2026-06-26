@@ -1,5 +1,6 @@
 import { KV_KEYS, getTelegramConfig } from './steam.js'
 import { tgCall, escMd, fetchBatchAppDetails, sendGameDetail } from './telegram/utils.js'
+import { initDB } from '../db/index.js'
 import {
   handleSearch,
   cmdStart,
@@ -215,4 +216,63 @@ export async function checkDiscounts(env: Env): Promise<void> {
 
     await env.KV.put(notifiedKey, JSON.stringify(notified))
   }
+}
+
+export async function checkDiscountsD1(env: Env): Promise<void> {
+  await initDB(env.DB)
+
+  const config = await getTelegramConfig(env)
+  const token = config.token as string | undefined
+  if (!token) return
+
+  const subs = await env.DB.prepare(
+    'SELECT s.*, u.chat_id FROM subscriptions s JOIN users u ON s.user_id = u.id WHERE u.chat_id IS NOT NULL'
+  ).all<{ id: number; user_id: string; appid: number; name: string; added_at: number; chat_id: string }>()
+
+  if (!subs.results?.length) return
+
+  const appids = [...new Set(subs.results.map(s => s.appid))]
+  const cnMap = await fetchBatchAppDetails(appids, 'schinese')
+
+  const notifiedKey = KV_KEYS.notifiedKey('d1_notified')
+  const notified: Record<string, number> = (await env.KV.get(notifiedKey, 'json') as Record<string, number> | null) || {}
+
+  for (const sub of subs.results) {
+    const d = cnMap[sub.appid]
+    if (!d?.price_overview) continue
+
+    const price = d.price_overview as { discount_percent?: number; initial?: number; final?: number }
+    if ((price.discount_percent || 0) > 0 && (price.final || 0) < (price.initial || 0)) {
+      const lastPrice = notified[`${sub.chat_id}_${sub.appid}`]
+
+      if (lastPrice !== price.final) {
+        const discountText = `-${price.discount_percent}% 🔥`
+        const newPrice = `¥${((price.final || 0) / 100).toFixed(0)}`
+        const oldPrice = lastPrice ? `¥${((lastPrice || 0) / 100).toFixed(0)} → ` : ''
+
+        const msg = `🔥 *降价提醒* \\(${escMd(sub.name)}\\)
+
+💰 *${oldPrice}${newPrice}* ${discountText}
+
+[查看 Steam](https://store.steampowered.com/app/${sub.appid}/)`
+
+        await tgCall(token, 'sendMessage', {
+          chat_id: parseInt(sub.chat_id),
+          text: msg,
+          parse_mode: 'MarkdownV2',
+          disable_web_page_preview: false,
+          reply_markup: {
+            inline_keyboard: [[
+              { text: '🔗 Steam', url: `https://store.steampowered.com/app/${sub.appid}/` },
+              { text: '🔕 退订', callback_data: `unsub_${sub.id}` },
+            ]],
+          },
+        }).catch(e => console.error(`D1 notify failed for user ${sub.user_id} app ${sub.appid}:`, e))
+
+        notified[`${sub.chat_id}_${sub.appid}`] = price.final as number
+      }
+    }
+  }
+
+  await env.KV.put(notifiedKey, JSON.stringify(notified))
 }
