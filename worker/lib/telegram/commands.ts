@@ -327,19 +327,35 @@ async function runPipeline(action: string, chatId: number, env: Env, token: stri
 export async function cmdRun(action: string, chatId: number, env: Env, ctx: { waitUntil?: (p: Promise<void>) => void }): Promise<void> {
   const config = await getTelegramConfig(env)
   const token = config.token as string | undefined
+  if (!token) return
   if (!(await isAdmin(chatId, env))) {
-    await tgCall(token || '', 'sendMessage', { chat_id: chatId, text: '⛔ 仅管理员可用' })
-    return
-  }
-  if (!['recommend', 'library'].includes(action)) {
-    await tgCall(token || '', 'sendMessage', { chat_id: chatId, text: '使用方式: /run recommend 或 /run library' })
+    await tgCall(token, 'sendMessage', { chat_id: chatId, text: '⛔ 仅管理员可用' })
     return
   }
 
-  await tgCall(token || '', 'sendMessage', { chat_id: chatId, text: `⏳ 开始 ${action}，后台执行中...` })
-  const task = runPipeline(action, chatId, env, token || '')
-  if (ctx?.waitUntil) ctx.waitUntil(task)
-  else await task
+  if (action === 'recommend') {
+    await tgCall(token, 'sendMessage', { chat_id: chatId, text: '⏳ 开始推荐管线，后台执行中...' })
+    const task = runPipeline('recommend', chatId, env, token)
+    if (ctx?.waitUntil) ctx.waitUntil(task)
+    else await task
+  } else if (action === 'library') {
+    await tgCall(token, 'sendMessage', { chat_id: chatId, text: '⏳ 开始库同步，后台执行中...' })
+    const task = runPipeline('library', chatId, env, token)
+    if (ctx?.waitUntil) ctx.waitUntil(task)
+    else await task
+  } else {
+    await tgCall(token, 'sendMessage', {
+      chat_id: chatId,
+      text: '⚙️ *管理面板*',
+      parse_mode: 'MarkdownV2',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🤖 推荐管线', callback_data: 'run_recommend' }],
+          [{ text: '📦 库同步', callback_data: 'run_library' }],
+        ],
+      },
+    })
+  }
 }
 
 export async function handleCallbackQuery(cb: { data?: string; id?: string; message?: { chat?: { id?: number }; message_id?: number } }, env: Env): Promise<void> {
@@ -449,6 +465,13 @@ export async function handleCallbackQuery(cb: { data?: string; id?: string; mess
     return
   }
 
+  // run_recommend / run_library — pipeline from inline keyboard
+  if (data.startsWith('run_')) {
+    const action = data.replace('run_', '')
+    await cmdRun(action, chatId, env, {})
+    return
+  }
+
   // menu_* — main menu navigation
   if (data.startsWith('menu_')) {
     const action = data.replace('menu_', '')
@@ -474,11 +497,7 @@ export async function handleCallbackQuery(cb: { data?: string; id?: string; mess
         break
       case 'admin':
         if (await isAdmin(chatId, env)) {
-          await tgCall(token, 'sendMessage', {
-            chat_id: chatId,
-            text: '⚙️ *管理面板*\n\n/run recommend — 触发推荐管线\n/run library — 触发库同步',
-            parse_mode: 'MarkdownV2',
-          })
+          await cmdRun('', chatId, env, { waitUntil: undefined })
         }
         break
     }
