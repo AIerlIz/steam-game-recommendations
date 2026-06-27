@@ -1,18 +1,3 @@
-const BUILTIN_CHINESE_NAMES: Record<string, number> = {
-  '泰拉瑞亚': 105600,
-}
-
-export async function getChineseNameIndex(db: D1Database): Promise<Record<string, number>> {
-  const rows = await db.prepare('SELECT name, appid FROM chinese_names').all<{ name: string; appid: number }>()
-  const map = { ...BUILTIN_CHINESE_NAMES }
-  for (const r of (rows.results || [])) { map[r.name] = r.appid }
-  return map
-}
-
-export async function addChineseName(db: D1Database, cnName: string, appid: number): Promise<void> {
-  await db.prepare('INSERT OR REPLACE INTO chinese_names (name, appid) VALUES (?, ?)').bind(cnName, appid).run()
-}
-
 export async function getTelegramConfig(db: D1Database): Promise<{ token?: string; adminChatId?: string }> {
   const rows = await db.prepare('SELECT key, value FROM config WHERE key IN (?, ?)')
     .bind('TELEGRAM_TOKEN', 'TELEGRAM_ADMIN_CHAT_ID').all<{ key: string; value: string }>()

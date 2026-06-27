@@ -14,7 +14,6 @@ const TABLES = [
   `INSERT OR IGNORE INTO config (key, value) VALUES ('STEAM_API_KEY', '')`,
   `INSERT OR IGNORE INTO config (key, value) VALUES ('LLM_PROVIDER', 'openai')`,
   `INSERT OR IGNORE INTO config (key, value) VALUES ('LLM_API_KEY', '')`,
-  `CREATE TABLE IF NOT EXISTS chinese_names (name TEXT PRIMARY KEY, appid INTEGER NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS bot_sessions (chat_id TEXT PRIMARY KEY, state TEXT NOT NULL DEFAULT '{}', created_at INTEGER NOT NULL DEFAULT (unixepoch()), expires_at INTEGER NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS bot_notified (key TEXT PRIMARY KEY, data TEXT NOT NULL DEFAULT '{}')`,
   `INSERT OR IGNORE INTO config (key, value) VALUES ('TELEGRAM_TOKEN', '')`,

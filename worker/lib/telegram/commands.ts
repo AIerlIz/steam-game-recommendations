@@ -1,7 +1,8 @@
-import { getTelegramConfig, getChineseNameIndex } from '../kv-keys.js'
+import { getTelegramConfig } from '../kv-keys.js'
 import { tgCall, escMd, steamStoreSearch, fetchBatchAppDetails, sendGameDetail, sendSearchResults, isAdmin } from './utils.js'
 import { getSession, saveSession } from './session.js'
 import { initDB } from '../../db/index.js'
+import { steamSearchByName } from '../steam.js'
 
 export async function handleSearch(query: string, chatId: number, env: Env): Promise<void> {
   await initDB(env.DB)
@@ -58,19 +59,17 @@ export async function handleSearch(query: string, chatId: number, env: Env): Pro
 
   if (!searchResult.items?.length) {
     if (isChinese) {
-      const idx = await getChineseNameIndex(env.DB)
-      const lc = query.toLowerCase()
-      const matched = Object.entries(idx).find(([cn]) => cn.toLowerCase() === lc)
-      if (matched) {
-        const appid = matched[1]
+      // Try web search for English name
+      const webResult = await steamSearchByName(query)
+      if (webResult) {
         const [cnMap, enMap] = await Promise.all([
-          fetchBatchAppDetails([appid], 'schinese'),
-          fetchBatchAppDetails([appid], 'english'),
+          fetchBatchAppDetails([webResult.appid], 'schinese'),
+          fetchBatchAppDetails([webResult.appid], 'english'),
         ])
-        const items = [{ appid, name: (enMap[appid] as { name?: string } | undefined)?.name || query }]
+        const items = [{ appid: webResult.appid, name: webResult.name }]
         await sendSearchResults(token, chatId, items, 0, 1)
         await saveSession(env.DB, chatId, { search: { results: items, query, currentPage: 0, totalPages: 1, isSteamSearch: false } })
-        await sendGameDetail(token, chatId, appid, cnMap[appid] || { name: query }, enMap[appid] as Record<string, unknown> | undefined, true)
+        await sendGameDetail(token, chatId, webResult.appid, cnMap[webResult.appid] || { name: query }, enMap[webResult.appid] as Record<string, unknown> | undefined, true)
         return
       }
     }

@@ -1,4 +1,4 @@
-import { getTelegramConfig, addChineseName } from './lib/kv-keys.js'
+import { getTelegramConfig } from './lib/kv-keys.js'
 import { recommendForAllUsers } from './lib/deepsteam.js'
 import { syncAllUsers } from './scripts/fetch-library.js'
 import { handleWebhook, checkDiscountsD1 } from './lib/telegram.js'
@@ -204,13 +204,6 @@ export default {
       )
       const result = await resp.json()
       return jsonResponse(result)
-    }
-
-    if (path === '/api/bot/add-chinese-name' && request.method === 'POST') {
-      const body = await request.json() as { name?: string; appid?: number }
-      if (!body.name || !body.appid) return jsonResponse({ ok: false, error: '缺少 name 或 appid' }, 400)
-      await addChineseName(env.DB, body.name, body.appid)
-      return jsonResponse({ ok: true })
     }
 
     if (path.startsWith('/api/proxy/')) {

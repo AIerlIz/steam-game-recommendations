@@ -147,3 +147,76 @@ export async function getConfig(db: D1Database, key: string, defaultValue = ''):
   const row = await db.prepare('SELECT value FROM config WHERE key=?').bind(key).first<{ value: string }>()
   return row?.value || defaultValue
 }
+
+// ====== Chinese → English Web Search ======
+
+export interface SteamSearchResult {
+  appid: number
+  name: string
+}
+
+export async function webSearchEnglishName(chineseName: string): Promise<string | null> {
+  if (!/[\u4e00-\u9fff]/.test(chineseName)) return null
+  const query = encodeURIComponent(`${chineseName} steam game english name`)
+  const url = `https://html.duckduckgo.com/html/?q=${query}`
+  try {
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GameSeeker/1.0)' },
+      signal: AbortSignal.timeout(10000),
+    })
+    const html = await resp.text()
+    const snippets = html.match(/<a[^>]*class="result__a"[^>]*>(.*?)<\/a>/g) || []
+    const texts = html.match(/<a[^>]*class="result__snippet"[^>]*>(.*?)<\/a>/g) || []
+    const allText = [...snippets, ...texts].join(' ')
+      .replace(/<[^>]+>/g, '')
+      .replace(/[\n\r\t]+/g, ' ')
+
+    const steamMatch = allText.match(/[""]([^""]+)[""]\s*(?:on Steam|Steam Store|Steam Community)/i)
+    if (steamMatch) return steamMatch[1].trim()
+
+    const words = allText.split(/\s+/)
+    for (let i = 0; i < words.length - 1; i++) {
+      const w = words[i].replace(/[^a-zA-Z0-9:'\-]/g, '')
+      if (w.length > 2 && /^[A-Z]/.test(w) && !/^(The|A|An|On|For|And|Or|But|In|At|To|Of|Is|Are|Was|Were|Has|Have|Had|Game|Steam|Store|Buy|Play|Download)$/i.test(w)) {
+        const next = words[i + 1]?.replace(/[^a-zA-Z0-9:'\-]/g, '')
+        if (next && /^[A-Z]/.test(next)) {
+          return `${w} ${next}`
+        }
+      }
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+export async function steamSearchByName(query: string): Promise<SteamSearchResult | null> {
+  const isChinese = /[\u4e00-\u9fff]/.test(query)
+  const langs = isChinese ? ['schinese', 'english'] : ['english', 'schinese']
+  for (const lang of langs) {
+    const result = await trySteamSearch(query, lang)
+    if (result) return result
+  }
+  if (isChinese) {
+    const englishName = await webSearchEnglishName(query)
+    if (englishName) {
+      const result = await trySteamSearch(englishName, 'english')
+      if (result) return result
+    }
+  }
+  return null
+}
+
+async function trySteamSearch(query: string, lang: string): Promise<SteamSearchResult | null> {
+  const url = `https://store.steampowered.com/api/storesearch?term=${encodeURIComponent(query)}&l=${lang}&cc=us`
+  try {
+    const resp = await fetch(url, { signal: AbortSignal.timeout(10000) })
+    if (!resp.ok) return null
+    const data = await resp.json() as { items?: Array<{ id: number; name: string; type: string }> }
+    const items = data?.items || []
+    const app = items.find(i => i.type === 'game' || i.type === 'app')
+    return app ? { appid: app.id, name: app.name } : null
+  } catch {
+    return null
+  }
+}
