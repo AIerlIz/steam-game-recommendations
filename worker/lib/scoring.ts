@@ -76,7 +76,7 @@ export function calculateWeightedScore(
   if (profile.top_genres.length) {
     let matchedClusters = 0
     for (const genre of profile.top_genres.slice(0, 3)) {
-      const clusterGames = profile.clusters[genre]
+      const clusterGames = profile.clusters[genre] || []
       for (const cg of clusterGames) {
         const cgName = (cg.name || '').toLowerCase()
         if ([...recTags].some(t => cgName.includes(t))) {
