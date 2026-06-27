@@ -161,10 +161,9 @@ select:focus{outline:none;border-color:#a855f7}
 <div id="toast" class="toast"></div>
 <script>
 async function api(path, opts = {}) {
-  const resp = await fetch(path, {
-    headers: { 'Content-Type': 'application/json', ...opts.headers },
-    ...opts,
-  });
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  const { headers: _, ...rest } = opts;
+  const resp = await fetch(path, { ...rest, headers });
   return resp;
 }
 

@@ -55,7 +55,19 @@ export default {
     // Admin login
     if (path === '/admin/login' && request.method === 'POST') {
       try {
-        const { password } = await request.json() as { password?: string }
+        const ct = request.headers.get('Content-Type') || ''
+        let password = ''
+        if (ct.includes('application/json')) {
+          const body = await request.json() as { password?: string }
+          password = body.password || ''
+        } else if (ct.includes('application/x-www-form-urlencoded')) {
+          const text = await request.text()
+          const params = new URLSearchParams(text)
+          password = params.get('password') || ''
+        } else {
+          const text = await request.text()
+          try { password = (JSON.parse(text) as { password?: string }).password || '' } catch { password = text }
+        }
         if (!password || password !== env.ADMIN_PASSWORD) {
           return jsonResponse({ error: '密码错误' }, 401)
         }
