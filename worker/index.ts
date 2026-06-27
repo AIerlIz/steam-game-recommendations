@@ -8,6 +8,7 @@ import { handleLibrary } from './api/library.js'
 import { handleRecommendations } from './api/recommendations.js'
 import { handleSearch } from './api/search.js'
 import { handleSubscriptions } from './api/subscriptions.js'
+import { initDB } from './db/index.js'
 
 function jsonResponse(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -54,21 +55,20 @@ export default {
 
     // Admin login
     if (path === '/admin/login' && request.method === 'POST') {
+      const rawBody = await request.text()
+      let password = ''
       try {
-        const rawBody = await request.text()
-        let password = ''
-        // Try JSON first
-        try {
-          const parsed = JSON.parse(rawBody)
-          password = parsed.password || ''
-        } catch {
-          // Try URL-encoded
-          const params = new URLSearchParams(rawBody)
-          password = params.get('password') || rawBody
-        }
-        if (!password || password !== env.ADMIN_PASSWORD) {
-          return jsonResponse({ error: '密码错误' }, 401)
-        }
+        const parsed = JSON.parse(rawBody)
+        password = parsed.password || ''
+      } catch {
+        const params = new URLSearchParams(rawBody)
+        password = params.get('password') || rawBody
+      }
+      if (!password || password !== env.ADMIN_PASSWORD) {
+        return jsonResponse({ error: '密码错误' }, 401)
+      }
+      try {
+        await initDB(env.DB)
         const sessionId = crypto.randomUUID()
         const now = Math.floor(Date.now() / 1000)
         await env.DB.prepare('INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)')
@@ -76,8 +76,8 @@ export default {
         return new Response(JSON.stringify({ ok: true }), {
           headers: { 'Content-Type': 'application/json', 'Set-Cookie': `admin_session=${sessionId}; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=86400` },
         })
-      } catch {
-        return jsonResponse({ error: '请求格式错误' }, 400)
+      } catch (e) {
+        return jsonResponse({ error: '登录失败: ' + (e as Error).message }, 500)
       }
     }
 
